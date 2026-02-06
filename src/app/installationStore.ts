@@ -1,5 +1,6 @@
 import type { Installation, InstallationQuery, InstallationStore } from "@slack/bolt";
 import { getConvexClient } from "../data/convex";
+import { api } from "../../convex/_generated/api";
 
 export const installationStore: InstallationStore = {
   storeInstallation: async (installation: Installation) => {
@@ -8,7 +9,7 @@ export const installationStore: InstallationStore = {
       throw new Error("Missing teamId for installation");
     }
     const client = getConvexClient();
-    await client.mutation("slack/installations:store", {
+    await client.mutation(api.slack.installations.store, {
       teamId,
       installation,
     });
@@ -19,7 +20,7 @@ export const installationStore: InstallationStore = {
       throw new Error("Missing teamId for installation fetch");
     }
     const client = getConvexClient();
-    const installation = await client.query("slack/installations:get", {
+    const installation = await client.query(api.slack.installations.get, {
       teamId,
     });
     return installation as Installation;
@@ -30,7 +31,7 @@ export const installationStore: InstallationStore = {
       throw new Error("Missing teamId for installation delete");
     }
     const client = getConvexClient();
-    await client.mutation("slack/installations:remove", {
+    await client.mutation(api.slack.installations.remove, {
       teamId,
     });
   },

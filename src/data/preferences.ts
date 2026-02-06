@@ -1,4 +1,5 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export type RecommendationSettings = {
@@ -20,7 +21,7 @@ export const getOrCreatePreferences = async (
 ): Promise<UserPreferences> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const result = await client.mutation("slack/preferences:getOrCreate", {
+  const result = await client.mutation(api.slack.preferences.getOrCreate, {
     userId,
     teamId: teamContext.teamId,
   });
@@ -50,7 +51,7 @@ export const updatePreferences = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/preferences:update", {
+  return client.mutation(api.slack.preferences.update, {
     userId,
     teamId: teamContext.teamId,
     ...updates,

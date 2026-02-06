@@ -1,10 +1,15 @@
 import type { App } from "@slack/bolt";
+import type { MessageEvent } from "@slack/types";
 
 export const registerHelloMessageHandler = (app: App) => {
   app.message("hello", async ({ message, say }) => {
-    if (message?.channel_type === "im") {
+    const msg = message as MessageEvent | undefined;
+    if (!msg || msg.channel_type === "im") {
       return;
     }
-    await say(`Hey there <@${message.user}>! 👋`);
+    if (!("user" in msg) || typeof msg.user !== "string") {
+      return;
+    }
+    await say(`Hey there <@${msg.user}>! 👋`);
   });
 };

@@ -1,4 +1,6 @@
 import type { App } from "@slack/bolt";
+import type { WebClient } from "@slack/web-api";
+import type { HomeView } from "@slack/types";
 import { getTeamContext } from "../lib/teamContext";
 import { getOrCreatePreferences, updatePreferences } from "../data/preferences";
 import { listTemplates, getTemplateById, updateTemplateBody } from "../data/templates";
@@ -17,8 +19,44 @@ import {
 } from "../features/recurring/modals";
 import { getPortalLinks } from "../features/portal/links";
 import { logger } from "../lib/logger";
+import type { Id } from "../../convex/_generated/dataModel";
 
-const getUserProfile = async (client: any, userId: string) => {
+type ActionValue = {
+  value?: string;
+  selected_option?: { value?: string; text?: { text?: string } };
+  selected_options?: Array<{ value?: string }>;
+  selected_users?: string[];
+};
+
+const getFirstAction = (body: unknown): ActionValue | null => {
+  if (!body || typeof body !== "object") return null;
+  const maybe = body as { actions?: unknown };
+  if (!Array.isArray(maybe.actions) || maybe.actions.length === 0) return null;
+  const first = maybe.actions[0];
+  if (!first || typeof first !== "object") return null;
+  return first as ActionValue;
+};
+
+const getBodyUserId = (body: unknown): string | undefined => {
+  if (!body || typeof body !== "object") return undefined;
+  const maybe = body as { user?: { id?: unknown } | null; user_id?: unknown };
+  if (maybe.user && typeof maybe.user.id === "string") return maybe.user.id;
+  if (typeof maybe.user_id === "string") return maybe.user_id;
+  return undefined;
+};
+
+const getBodyTriggerId = (body: unknown): string | undefined => {
+  if (!body || typeof body !== "object") return undefined;
+  const maybe = body as { trigger_id?: unknown };
+  return typeof maybe.trigger_id === "string" ? maybe.trigger_id : undefined;
+};
+
+const toRecurringId = (value: string): Id<"recurringQuestions"> | null => {
+  if (!value) return null;
+  return value as Id<"recurringQuestions">;
+};
+
+const getUserProfile = async (client: WebClient, userId: string) => {
   try {
     const userInfo = await client.users.info({ user: userId });
     const profile = userInfo?.user?.profile || {};
@@ -39,7 +77,7 @@ const getUserProfile = async (client: any, userId: string) => {
   }
 };
 
-const getTeamName = async (client: any, teamId: string) => {
+const getTeamName = async (client: WebClient, teamId: string) => {
   try {
     const teamInfo = await client.team.info({ team: teamId });
     return teamInfo?.team?.name || undefined;
@@ -49,7 +87,7 @@ const getTeamName = async (client: any, teamId: string) => {
   }
 };
 
-const publishHome = async (client: any, userId: string, teamContext: { teamId: string }) => {
+const publishHome = async (client: WebClient, userId: string, teamContext: { teamId: string }) => {
   const preferences = await getOrCreatePreferences(userId, teamContext);
   const profile = await getUserProfile(client, userId);
   const teamName = await getTeamName(client, teamContext.teamId);
@@ -68,30 +106,32 @@ const publishHome = async (client: any, userId: string, teamContext: { teamId: s
     ? await listRecurringQuestions(userId, teamContext)
     : [];
 
+  const view: HomeView = {
+    type: "home",
+    blocks: buildHomeView({
+      homeTab: preferences.homeTab,
+      templateSection: preferences.templateSection,
+      allowlist: preferences.allowlist,
+      recommendations: preferences.recommendations,
+      userName: profile.firstName,
+      templates: templates.map((template) => ({
+        templateId: template.templateId,
+        title: template.title,
+        summary: template.summary,
+      })),
+      recurring: recurring.map((item) => ({
+        id: item.id,
+        title: item.title,
+        question: item.question,
+        frequencyLabel: item.frequencyLabel,
+      })),
+      portalLinks,
+    }),
+  };
+
   await client.views.publish({
     user_id: userId,
-    view: {
-      type: "home",
-      blocks: buildHomeView({
-        homeTab: preferences.homeTab,
-        templateSection: preferences.templateSection,
-        allowlist: preferences.allowlist,
-        recommendations: preferences.recommendations,
-        userName: profile.firstName,
-        templates: templates.map((template) => ({
-          templateId: template.templateId,
-          title: template.title,
-          summary: template.summary,
-        })),
-        recurring: recurring.map((item) => ({
-          id: item.id,
-          title: item.title,
-          question: item.question,
-          frequencyLabel: item.frequencyLabel,
-        })),
-        portalLinks,
-      }),
-    },
+    view,
   });
 };
 
@@ -121,10 +161,13 @@ export const registerHomeHandlers = (app: App) => {
   app.action("home_tab_select", async ({ ack, body, client }) => {
     await ack();
     try {
-      const selected = body.actions?.[0]?.selected_option?.value || "welcome";
+      const action = getFirstAction(body);
+      const selected = action?.selected_option?.value || "welcome";
+      const userId = getBodyUserId(body);
+      if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(body.user.id, teamContext, { homeTab: selected });
-      await publishHome(client, body.user.id, teamContext);
+      await updatePreferences(userId, teamContext, { homeTab: selected });
+      await publishHome(client, userId, teamContext);
     } catch (error) {
       logger.error({ error }, "home_tab_select failed");
     }
@@ -133,10 +176,13 @@ export const registerHomeHandlers = (app: App) => {
   app.action("allowlist_select", async ({ ack, body, client }) => {
     await ack();
     try {
-      const selectedUsers = body.actions?.[0]?.selected_users || [];
+      const action = getFirstAction(body);
+      const selectedUsers = action?.selected_users || [];
+      const userId = getBodyUserId(body);
+      if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(body.user.id, teamContext, { allowlist: selectedUsers });
-      await publishHome(client, body.user.id, teamContext);
+      await updatePreferences(userId, teamContext, { allowlist: selectedUsers });
+      await publishHome(client, userId, teamContext);
     } catch (error) {
       logger.error({ error }, "allowlist_select failed");
     }
@@ -145,14 +191,16 @@ export const registerHomeHandlers = (app: App) => {
   app.action("settings_recommendations", async ({ ack, body, client }) => {
     await ack();
     try {
-      const selectedValues =
-        body.actions?.[0]?.selected_options?.map((option: any) => option.value) || [];
+      const action = getFirstAction(body);
+      const selectedValues = action?.selected_options?.map((option) => option.value) || [];
+      const userId = getBodyUserId(body);
+      if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(body.user.id, teamContext, {
+      await updatePreferences(userId, teamContext, {
         recommendationsPastQuestionsEnabled: selectedValues.includes("past_questions"),
         recommendationsSimilarExecsEnabled: selectedValues.includes("similar_execs"),
       });
-      await publishHome(client, body.user.id, teamContext);
+      await publishHome(client, userId, teamContext);
     } catch (error) {
       logger.error({ error }, "settings_recommendations failed");
     }
@@ -161,13 +209,17 @@ export const registerHomeHandlers = (app: App) => {
   app.action("template_edit", async ({ ack, body, client }) => {
     await ack();
     try {
-      const templateId = body.actions?.[0]?.value;
+      const action = getFirstAction(body);
+      const templateId = action?.value;
+      const userId = getBodyUserId(body);
+      const triggerId = getBodyTriggerId(body);
+      if (!userId || !triggerId) return;
       const teamContext = getTeamContext({ body });
       if (!templateId) return;
-      const template = await getTemplateById(body.user.id, teamContext, templateId);
+      const template = await getTemplateById(userId, teamContext, templateId);
       if (!template) return;
       await client.views.open({
-        trigger_id: body.trigger_id,
+        trigger_id: triggerId,
         view: buildEditTemplateModal({
           templateId: template.templateId,
           title: template.title,
@@ -233,22 +285,28 @@ export const registerHomeHandlers = (app: App) => {
   app.action("recurring_actions", async ({ ack, body, client }) => {
     await ack();
     try {
-      const selected = body.actions?.[0]?.selected_option?.value || "";
-      const [action, id] = selected.split(":");
+      const actionValue = getFirstAction(body);
+      const selected = actionValue?.selected_option?.value || "";
+      const userId = getBodyUserId(body);
+      const triggerId = getBodyTriggerId(body);
+      if (!userId) return;
+      const [actionType, id] = selected.split(":");
       const teamContext = getTeamContext({ body });
-      if (!id) return;
+      const recurringId = toRecurringId(id);
+      if (!recurringId) return;
 
-      if (action === "delete") {
-        await deleteRecurringQuestion(body.user.id, teamContext, id);
-        await publishHome(client, body.user.id, teamContext);
+      if (actionType === "delete") {
+        await deleteRecurringQuestion(userId, teamContext, recurringId);
+        await publishHome(client, userId, teamContext);
         return;
       }
 
-      if (action === "edit") {
-        const recurring = await getRecurringQuestion(body.user.id, teamContext, id);
+      if (actionType === "edit") {
+        if (!triggerId) return;
+        const recurring = await getRecurringQuestion(userId, teamContext, recurringId);
         if (!recurring) return;
         await client.views.open({
-          trigger_id: body.trigger_id,
+          trigger_id: triggerId,
           view: buildEditRecurringQuestionModal({
             id: recurring.id,
             question: recurring.question,
@@ -268,7 +326,7 @@ export const registerHomeHandlers = (app: App) => {
     try {
       const teamContext = getTeamContext({ body });
       const metadata = JSON.parse(view.private_metadata || "{}");
-      const id = metadata.id;
+      const id = toRecurringId(metadata.id);
       if (!id) return;
       const question = view.state.values?.question?.value?.value || "";
       const title = view.state.values?.title?.value?.value || "";

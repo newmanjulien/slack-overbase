@@ -1,6 +1,14 @@
+import type { KnownBlock } from "@slack/types";
+import type { Id } from "../../convex/_generated/dataModel";
+
 export const buildRecurringBlocks = (
-  recurring: Array<{ id: string; title: string; question: string; frequencyLabel: string }>,
-) => {
+  recurring: Array<{
+    id: Id<"recurringQuestions">;
+    title: string;
+    question: string;
+    frequencyLabel: string;
+  }>,
+): KnownBlock[] => {
   if (recurring.length === 0) {
     return [
       {
@@ -10,7 +18,7 @@ export const buildRecurringBlocks = (
     ];
   }
 
-  const blocks: any[] = [];
+  const blocks: KnownBlock[] = [];
   for (const item of recurring) {
     blocks.push({
       type: "section",

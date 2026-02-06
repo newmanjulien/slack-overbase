@@ -1,4 +1,5 @@
 import { getConvexClient } from "../../data/convex";
+import { api } from "../../../convex/_generated/api";
 import { getConfig } from "../../lib/config";
 import { logger } from "../../lib/logger";
 
@@ -31,7 +32,7 @@ const issueCode = async (payload: {
   avatarUrl?: string;
 }) => {
   const client = getConvexClient();
-  const result = await client.mutation("portal/auth:issueOneTimeCode", payload);
+  const result = await client.mutation(api.portal.auth.issueOneTimeCode, payload);
   return result?.code as string | undefined;
 };
 

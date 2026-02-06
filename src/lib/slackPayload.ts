@@ -2,8 +2,8 @@ export type SlackPayload = {
   context?: { teamId?: string; team_id?: string; userId?: string; user_id?: string };
   body?: {
     team_id?: string;
-    team?: { id?: string };
-    user?: { id?: string };
+    team?: { id?: string } | null;
+    user?: { id?: string } | null;
     user_id?: string;
     trigger_id?: string;
   };

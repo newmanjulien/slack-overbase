@@ -1,8 +1,10 @@
+import type { ModalView } from "@slack/types";
+
 export const buildEditTemplateModal = (payload: {
   templateId: string;
   title: string;
   body: string;
-}) => {
+}): ModalView => {
   return {
     type: "modal",
     callback_id: "template_edit",

@@ -1,8 +1,10 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export type RecurringQuestion = {
-  id: string;
+  id: Id<"recurringQuestions">;
   question: string;
   title: string;
   frequency: string;
@@ -11,8 +13,16 @@ export type RecurringQuestion = {
   dataSelection: string | null;
 };
 
-const mapRecurring = (record: any): RecurringQuestion => ({
-  id: record._id as string,
+const mapRecurring = (record: {
+  _id: Id<"recurringQuestions">;
+  question: string;
+  title: string;
+  frequency: string;
+  frequencyLabel: string;
+  delivery: string | null;
+  dataSelection: string | null;
+}): RecurringQuestion => ({
+  id: record._id,
   question: record.question as string,
   title: record.title as string,
   frequency: record.frequency as string,
@@ -27,7 +37,7 @@ export const listRecurringQuestions = async (
 ): Promise<RecurringQuestion[]> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const questions = await client.query("slack/recurring:list", {
+  const questions = await client.query(api.slack.recurring.list, {
     userId,
     teamId: teamContext.teamId,
   });
@@ -37,11 +47,11 @@ export const listRecurringQuestions = async (
 export const getRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: string,
+  id: Id<"recurringQuestions">,
 ): Promise<RecurringQuestion | null> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const question = await client.query("slack/recurring:getById", {
+  const question = await client.query(api.slack.recurring.getById, {
     userId,
     teamId: teamContext.teamId,
     id,
@@ -63,7 +73,7 @@ export const createRecurringQuestion = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/recurring:create", {
+  return client.mutation(api.slack.recurring.create, {
     userId,
     teamId: teamContext.teamId,
     ...payload,
@@ -73,7 +83,7 @@ export const createRecurringQuestion = async (
 export const updateRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: string,
+  id: Id<"recurringQuestions">,
   payload: {
     question?: string;
     title?: string;
@@ -85,7 +95,7 @@ export const updateRecurringQuestion = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/recurring:update", {
+  return client.mutation(api.slack.recurring.update, {
     userId,
     teamId: teamContext.teamId,
     id,
@@ -96,11 +106,11 @@ export const updateRecurringQuestion = async (
 export const deleteRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: string,
+  id: Id<"recurringQuestions">,
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/recurring:remove", {
+  return client.mutation(api.slack.recurring.remove, {
     userId,
     teamId: teamContext.teamId,
     id,
