@@ -1,13 +1,10 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.claimEvent = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.claimEvent = (0, server_1.mutation)({
+import { mutation } from "../_generated/server.js";
+import { v } from "convex/values";
+export const claimEvent = mutation({
     args: {
-        teamId: values_1.v.string(),
-        eventId: values_1.v.string(),
-        userId: values_1.v.optional(values_1.v.string()),
+        teamId: v.string(),
+        eventId: v.string(),
+        userId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db

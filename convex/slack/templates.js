@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateBody = exports.getById = exports.list = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.list = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string() },
+import { mutation, query } from "../_generated/server.js";
+import { v } from "convex/values";
+export const list = query({
+    args: { userId: v.string(), teamId: v.string() },
     handler: async (ctx, args) => {
         return ctx.db
             .query("templates")
@@ -13,8 +10,8 @@ exports.list = (0, server_1.query)({
             .collect();
     },
 });
-exports.getById = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), templateId: values_1.v.string() },
+export const getById = query({
+    args: { userId: v.string(), teamId: v.string(), templateId: v.string() },
     handler: async (ctx, args) => {
         return ctx.db
             .query("templates")
@@ -25,8 +22,8 @@ exports.getById = (0, server_1.query)({
             .first();
     },
 });
-exports.updateBody = (0, server_1.mutation)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), templateId: values_1.v.string(), body: values_1.v.string() },
+export const updateBody = mutation({
+    args: { userId: v.string(), teamId: v.string(), templateId: v.string(), body: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("templates")
