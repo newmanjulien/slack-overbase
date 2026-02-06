@@ -15,7 +15,7 @@ export const createBoltApp = () => {
     stateSecret: config.SLACK_STATE_SECRET,
     scopes: config.slackScopes,
     installationStore,
-    processBeforeResponse: false,
+    processBeforeResponse: true,
     installerOptions: {
       installPath: "/slack/install",
       redirectUriPath: "/slack/oauth_redirect",
