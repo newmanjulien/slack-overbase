@@ -1,19 +1,16 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.storeAnswer = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.storeAnswer = (0, server_1.mutation)({
+import { mutation } from "../_generated/server.js";
+import { v } from "convex/values";
+export const storeAnswer = mutation({
     args: {
-        userId: values_1.v.string(),
-        teamId: values_1.v.string(),
-        canvasId: values_1.v.string(),
-        sentAt: values_1.v.number(),
-        questionText: values_1.v.optional(values_1.v.string()),
-        markdown: values_1.v.optional(values_1.v.string()),
-        summary: values_1.v.optional(values_1.v.string()),
-        keyPoints: values_1.v.optional(values_1.v.array(values_1.v.string())),
-        entities: values_1.v.optional(values_1.v.array(values_1.v.string())),
+        userId: v.string(),
+        teamId: v.string(),
+        canvasId: v.string(),
+        sentAt: v.number(),
+        questionText: v.optional(v.string()),
+        markdown: v.optional(v.string()),
+        summary: v.optional(v.string()),
+        keyPoints: v.optional(v.array(v.string())),
+        entities: v.optional(v.array(v.string())),
     },
     handler: async (ctx, args) => {
         const id = await ctx.db.insert("canvasAnswers", {

@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { mutation } from "../_generated/server.js";
 import { v } from "convex/values";
 
 const TTL_MS = 10 * 60 * 1000;

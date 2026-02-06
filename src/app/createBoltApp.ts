@@ -1,7 +1,7 @@
 import { App, ExpressReceiver } from "@slack/bolt";
 import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
-import { registerHandlers } from "../handlers.js";
+import { registerHandlers } from "../handlers/index.js";
 import { registerCanvasAdminRoutes } from "../features/canvas/adminRoutes.js";
 import { installationStore } from "./installationStore.js";
 

@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.remove = exports.get = exports.store = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.store = (0, server_1.mutation)({
-    args: { teamId: values_1.v.string(), installation: values_1.v.any() },
+import { mutation, query } from "../_generated/server.js";
+import { v } from "convex/values";
+export const store = mutation({
+    args: { teamId: v.string(), installation: v.any() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("installations")
@@ -27,8 +24,8 @@ exports.store = (0, server_1.mutation)({
         return { ok: true, id };
     },
 });
-exports.get = (0, server_1.query)({
-    args: { teamId: values_1.v.string() },
+export const get = query({
+    args: { teamId: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("installations")
@@ -37,8 +34,8 @@ exports.get = (0, server_1.query)({
         return existing?.installation || null;
     },
 });
-exports.remove = (0, server_1.mutation)({
-    args: { teamId: values_1.v.string() },
+export const remove = mutation({
+    args: { teamId: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("installations")

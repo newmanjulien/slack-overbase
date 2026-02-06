@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.update = exports.getOrCreate = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.getOrCreate = (0, server_1.mutation)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string() },
+import { mutation } from "../_generated/server.js";
+import { v } from "convex/values";
+export const getOrCreate = mutation({
+    args: { userId: v.string(), teamId: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("userPreferences")
@@ -28,16 +25,16 @@ exports.getOrCreate = (0, server_1.mutation)({
         return ctx.db.get(id);
     },
 });
-exports.update = (0, server_1.mutation)({
+export const update = mutation({
     args: {
-        userId: values_1.v.string(),
-        teamId: values_1.v.string(),
-        allowlist: values_1.v.optional(values_1.v.array(values_1.v.string())),
-        homeTab: values_1.v.optional(values_1.v.string()),
-        templateSection: values_1.v.optional(values_1.v.string()),
-        recommendationsPastQuestionsEnabled: values_1.v.optional(values_1.v.boolean()),
-        recommendationsSimilarExecsEnabled: values_1.v.optional(values_1.v.boolean()),
-        onboardingSent: values_1.v.optional(values_1.v.boolean()),
+        userId: v.string(),
+        teamId: v.string(),
+        allowlist: v.optional(v.array(v.string())),
+        homeTab: v.optional(v.string()),
+        templateSection: v.optional(v.string()),
+        recommendationsPastQuestionsEnabled: v.optional(v.boolean()),
+        recommendationsSimilarExecsEnabled: v.optional(v.boolean()),
+        onboardingSent: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db

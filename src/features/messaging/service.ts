@@ -8,7 +8,7 @@ import {
   updateLastMessageAt,
   ConversationMessage,
 } from "../../data/conversations.js";
-import { getDatasourcesForUser } from "../datasources.js";
+import { getDatasourcesForUser } from "../datasources/index.js";
 import { SYSTEM_PROMPT, SUMMARY_PROMPT } from "./prompt.js";
 import { logger } from "../../lib/logger.js";
 import { TeamContext } from "../../lib/teamContext.js";

@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateLastMessageAt = exports.updateSummary = exports.getMeta = exports.addMessage = exports.listRecentMessages = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.listRecentMessages = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), limit: values_1.v.number() },
+import { mutation, query } from "../_generated/server.js";
+import { v } from "convex/values";
+export const listRecentMessages = query({
+    args: { userId: v.string(), teamId: v.string(), limit: v.number() },
     handler: async (ctx, args) => {
         const messages = await ctx.db
             .query("conversationMessages")
@@ -14,14 +11,14 @@ exports.listRecentMessages = (0, server_1.query)({
         return messages.reverse();
     },
 });
-exports.addMessage = (0, server_1.mutation)({
+export const addMessage = mutation({
     args: {
-        userId: values_1.v.string(),
-        teamId: values_1.v.string(),
-        role: values_1.v.string(),
-        content: values_1.v.string(),
-        source: values_1.v.optional(values_1.v.string()),
-        hasBot24: values_1.v.optional(values_1.v.boolean()),
+        userId: v.string(),
+        teamId: v.string(),
+        role: v.string(),
+        content: v.string(),
+        source: v.optional(v.string()),
+        hasBot24: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         await ctx.db.insert("conversationMessages", {
@@ -35,8 +32,8 @@ exports.addMessage = (0, server_1.mutation)({
         });
     },
 });
-exports.getMeta = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string() },
+export const getMeta = query({
+    args: { userId: v.string(), teamId: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("conversations")
@@ -48,8 +45,8 @@ exports.getMeta = (0, server_1.query)({
         };
     },
 });
-exports.updateSummary = (0, server_1.mutation)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), summary: values_1.v.string() },
+export const updateSummary = mutation({
+    args: { userId: v.string(), teamId: v.string(), summary: v.string() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("conversations")
@@ -73,8 +70,8 @@ exports.updateSummary = (0, server_1.mutation)({
         });
     },
 });
-exports.updateLastMessageAt = (0, server_1.mutation)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), lastMessageAt: values_1.v.number() },
+export const updateLastMessageAt = mutation({
+    args: { userId: v.string(), teamId: v.string(), lastMessageAt: v.number() },
     handler: async (ctx, args) => {
         const existing = await ctx.db
             .query("conversations")

@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.remove = exports.update = exports.create = exports.getById = exports.list = void 0;
-const server_1 = require("../_generated/server");
-const values_1 = require("convex/values");
-exports.list = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string() },
+import { mutation, query } from "../_generated/server.js";
+import { v } from "convex/values";
+export const list = query({
+    args: { userId: v.string(), teamId: v.string() },
     handler: async (ctx, args) => {
         return ctx.db
             .query("recurringQuestions")
@@ -13,8 +10,8 @@ exports.list = (0, server_1.query)({
             .collect();
     },
 });
-exports.getById = (0, server_1.query)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), id: values_1.v.id("recurringQuestions") },
+export const getById = query({
+    args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
     handler: async (ctx, args) => {
         const record = await ctx.db.get(args.id);
         if (!record)
@@ -25,16 +22,16 @@ exports.getById = (0, server_1.query)({
         return record;
     },
 });
-exports.create = (0, server_1.mutation)({
+export const create = mutation({
     args: {
-        userId: values_1.v.string(),
-        teamId: values_1.v.string(),
-        question: values_1.v.string(),
-        title: values_1.v.string(),
-        frequency: values_1.v.string(),
-        frequencyLabel: values_1.v.string(),
-        delivery: values_1.v.union(values_1.v.string(), values_1.v.null()),
-        dataSelection: values_1.v.union(values_1.v.string(), values_1.v.null()),
+        userId: v.string(),
+        teamId: v.string(),
+        question: v.string(),
+        title: v.string(),
+        frequency: v.string(),
+        frequencyLabel: v.string(),
+        delivery: v.union(v.string(), v.null()),
+        dataSelection: v.union(v.string(), v.null()),
     },
     handler: async (ctx, args) => {
         const now = Date.now();
@@ -53,17 +50,17 @@ exports.create = (0, server_1.mutation)({
         return { id };
     },
 });
-exports.update = (0, server_1.mutation)({
+export const update = mutation({
     args: {
-        userId: values_1.v.string(),
-        teamId: values_1.v.string(),
-        id: values_1.v.id("recurringQuestions"),
-        question: values_1.v.optional(values_1.v.string()),
-        title: values_1.v.optional(values_1.v.string()),
-        frequency: values_1.v.optional(values_1.v.string()),
-        frequencyLabel: values_1.v.optional(values_1.v.string()),
-        delivery: values_1.v.optional(values_1.v.union(values_1.v.string(), values_1.v.null())),
-        dataSelection: values_1.v.optional(values_1.v.union(values_1.v.string(), values_1.v.null())),
+        userId: v.string(),
+        teamId: v.string(),
+        id: v.id("recurringQuestions"),
+        question: v.optional(v.string()),
+        title: v.optional(v.string()),
+        frequency: v.optional(v.string()),
+        frequencyLabel: v.optional(v.string()),
+        delivery: v.optional(v.union(v.string(), v.null())),
+        dataSelection: v.optional(v.union(v.string(), v.null())),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db.get(args.id);
@@ -84,8 +81,8 @@ exports.update = (0, server_1.mutation)({
         return { ok: true };
     },
 });
-exports.remove = (0, server_1.mutation)({
-    args: { userId: values_1.v.string(), teamId: values_1.v.string(), id: values_1.v.id("recurringQuestions") },
+export const remove = mutation({
+    args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
     handler: async (ctx, args) => {
         const existing = await ctx.db.get(args.id);
         if (!existing)
