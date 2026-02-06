@@ -1,4 +1,6 @@
-export const buildWelcomeBlocks = () => [
+import type { KnownBlock } from "@slack/types";
+
+export const buildWelcomeBlocks = (): KnownBlock[] => [
   {
     type: "section",
     text: {

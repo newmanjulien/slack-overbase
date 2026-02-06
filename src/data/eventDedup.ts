@@ -1,4 +1,5 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export const claimSlackEvent = async (
@@ -11,7 +12,7 @@ export const claimSlackEvent = async (
   }
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/events:claimEvent", {
+  return client.mutation(api.slack.events.claimEvent, {
     teamId: teamContext.teamId,
     eventId,
     userId,

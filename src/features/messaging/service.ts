@@ -12,6 +12,7 @@ import { getDatasourcesForUser } from "../datasources";
 import { SYSTEM_PROMPT, SUMMARY_PROMPT } from "./prompt";
 import { logger } from "../../lib/logger";
 import { TeamContext } from "../../lib/teamContext";
+import type { ResponseInputItem } from "openai/resources/responses/responses";
 
 const HISTORY_WINDOW = 10;
 const SUMMARY_DEBOUNCE_MS = 60_000;
@@ -19,6 +20,22 @@ const summaryQueue = new Map<string, { inFlight: boolean; lastScheduledAt: numbe
 
 const buildSummaryKey = (userId: string, teamContext: TeamContext) =>
   `${teamContext.teamId}:${userId}`;
+
+const systemMessage = (content: string): ConversationMessage => ({
+  role: "system",
+  content,
+});
+
+const toResponseInputItems = (messages: ConversationMessage[]): ResponseInputItem[] =>
+  messages.map((message) => ({
+    role: message.role,
+    content: message.content,
+  }));
+
+const userMessage = (content: string): ResponseInputItem => ({
+  role: "user",
+  content,
+});
 
 const summarizeHistory = async (
   existingSummary: string,
@@ -28,11 +45,11 @@ const summarizeHistory = async (
   const response = await client.responses.create({
     model: "gpt-4.1-mini",
     input: [
-      { role: "system", content: SUMMARY_PROMPT },
+      systemMessage(SUMMARY_PROMPT),
       ...(existingSummary
-        ? [{ role: "system", content: `Existing summary: ${existingSummary}` }]
+        ? [systemMessage(`Existing summary: ${existingSummary}`)]
         : []),
-      ...olderMessages,
+      ...toResponseInputItems(olderMessages),
     ],
   });
   return extractOutputText(response);
@@ -117,21 +134,21 @@ export const handleDirectMessage = async (payload: {
     }
 
     historyForLlm = [
-      ...(summary ? [{ role: "system", content: `Conversation summary: ${summary}` }] : []),
+      ...(summary ? [systemMessage(`Conversation summary: ${summary}`)] : []),
       ...recent,
     ];
   } else if (summary) {
-    historyForLlm = [{ role: "system", content: `Conversation summary: ${summary}` }, ...history];
+    historyForLlm = [systemMessage(`Conversation summary: ${summary}`), ...history];
   }
 
   const client = getOpenAIClient();
   const response = await client.responses.create({
     model: "gpt-4.1-mini",
     input: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "system", content: formatDatasourcesContext(datasources) },
-      ...historyForLlm,
-      { role: "user", content: text },
+      systemMessage(SYSTEM_PROMPT),
+      systemMessage(formatDatasourcesContext(datasources)),
+      ...toResponseInputItems(historyForLlm),
+      userMessage(text),
     ],
   });
 

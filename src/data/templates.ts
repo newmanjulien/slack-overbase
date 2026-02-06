@@ -1,4 +1,5 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export type Template = {
@@ -16,7 +17,7 @@ export const listTemplates = async (
 ): Promise<Template[]> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const templates = await client.query("slack/templates:list", {
+  const templates = await client.query(api.slack.templates.list, {
     userId,
     teamId: teamContext.teamId,
   });
@@ -30,7 +31,7 @@ export const getTemplateById = async (
 ): Promise<Template | null> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const template = await client.query("slack/templates:getById", {
+  const template = await client.query(api.slack.templates.getById, {
     userId,
     teamId: teamContext.teamId,
     templateId,
@@ -46,7 +47,7 @@ export const updateTemplateBody = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/templates:updateBody", {
+  return client.mutation(api.slack.templates.updateBody, {
     userId,
     teamId: teamContext.teamId,
     templateId,

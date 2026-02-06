@@ -1,7 +1,10 @@
+import type { ModalView } from "@slack/types";
+import type { Id } from "../../../convex/_generated/dataModel";
+
 export const buildAddRecurringQuestionModal = (payload: {
   timeZone?: string;
   source?: string;
-}) => {
+}): ModalView => {
   return {
     type: "modal",
     callback_id: "recurring_add",
@@ -48,12 +51,12 @@ export const buildAddRecurringQuestionModal = (payload: {
 };
 
 export const buildEditRecurringQuestionModal = (payload: {
-  id: string;
+  id: Id<"recurringQuestions">;
   question: string;
   title: string;
   frequency: string;
   frequencyLabel: string;
-}) => {
+}): ModalView => {
   return {
     type: "modal",
     callback_id: "recurring_edit",

@@ -4,22 +4,18 @@ import { getTeamContext } from "../../lib/teamContext";
 import { claimSlackEvent } from "../../data/eventDedup";
 import { handleDirectMessage } from "../../features/messaging/service";
 import { getConversationMeta } from "../../data/conversations";
+import { getEventMeta, isDirectUserMessage } from "../../lib/slackGuards";
 
 const MESSAGE_DEBOUNCE_MS = 3000;
 const MAX_RETRY_AGE_MS = 30000;
 
 export const registerDirectMessageHandler = (app: App) => {
-  app.message(async ({ message, say, context, body, event }) => {
-    if (!message || !message.user || message.subtype === "bot_message") {
+  app.message(async ({ message, say, context, body }) => {
+    if (!message || !isDirectUserMessage(message)) {
       return;
     }
 
-    if (message.channel_type !== "im") {
-      return;
-    }
-
-    const eventId = body?.event_id || event?.event_id || message?.ts;
-    const eventTime = body?.event_time || event?.event_time;
+    const { eventId, eventTime } = getEventMeta(body, message.ts);
     let teamContext;
     try {
       teamContext = getTeamContext({ context, message });

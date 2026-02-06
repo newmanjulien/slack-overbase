@@ -1,4 +1,5 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export type ConversationMessage = {
@@ -14,7 +15,7 @@ export const listRecentMessages = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const messages = await client.query("slack/conversations:listRecentMessages", {
+  const messages = await client.query(api.slack.conversations.listRecentMessages, {
     userId,
     teamId: teamContext.teamId,
     limit: MAX_HISTORY,
@@ -34,7 +35,7 @@ export const addMessage = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  await client.mutation("slack/conversations:addMessage", {
+  await client.mutation(api.slack.conversations.addMessage, {
     userId,
     teamId: teamContext.teamId,
     role: message.role,
@@ -50,7 +51,7 @@ export const getConversationMeta = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const result = await client.query("slack/conversations:getMeta", {
+  const result = await client.query(api.slack.conversations.getMeta, {
     userId,
     teamId: teamContext.teamId,
   });
@@ -67,7 +68,7 @@ export const updateConversationSummary = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  await client.mutation("slack/conversations:updateSummary", {
+  await client.mutation(api.slack.conversations.updateSummary, {
     userId,
     teamId: teamContext.teamId,
     summary,
@@ -81,7 +82,7 @@ export const updateLastMessageAt = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  await client.mutation("slack/conversations:updateLastMessageAt", {
+  await client.mutation(api.slack.conversations.updateLastMessageAt, {
     userId,
     teamId: teamContext.teamId,
     lastMessageAt: timestamp,

@@ -15,6 +15,11 @@ export const registerCanvasAdminRoutes = (payload: {
   logger: { error: (meta: unknown, msg?: string) => void; warn: (meta: unknown, msg?: string) => void };
 }) => {
   const { receiver, installationStore, logger } = payload;
+  const buildInstallationQuery = (teamId: string) => ({
+    teamId,
+    isEnterpriseInstall: false,
+    enterpriseId: undefined,
+  });
 
   receiver.app.post(
     "/admin/send-canvas",
@@ -52,7 +57,7 @@ export const registerCanvasAdminRoutes = (payload: {
           });
         }
 
-        const installation = await installationStore.fetchInstallation({ teamId });
+        const installation = await installationStore.fetchInstallation(buildInstallationQuery(teamId));
         const token = installation?.bot?.token;
         if (!token) {
           return res.status(500).json({ ok: false, error: "missing_bot_token" });
@@ -76,8 +81,8 @@ export const registerCanvasAdminRoutes = (payload: {
           logger.warn({ error }, "Canvas persistence failed");
         }
 
-        return res.json({ ok: true, ...result });
-      } catch (error: any) {
+        return res.json({ ...result, ok: true });
+      } catch (error) {
         logger.error({ error }, "Admin send canvas failed");
         return res.status(500).json({ ok: false, error: "server_error" });
       }
@@ -109,7 +114,7 @@ export const registerCanvasAdminRoutes = (payload: {
           return res.status(400).json({ ok: false, error: "missing_team_id" });
         }
 
-        const installation = await installationStore.fetchInstallation({ teamId });
+        const installation = await installationStore.fetchInstallation(buildInstallationQuery(teamId));
         const token = installation?.bot?.token;
         if (!token) {
           return res.status(500).json({ ok: false, error: "missing_bot_token" });
@@ -142,8 +147,8 @@ export const registerCanvasAdminRoutes = (payload: {
           logger.warn({ error }, "Canvas persistence failed");
         }
 
-        return res.json({ ok: true, ...result });
-      } catch (error: any) {
+        return res.json({ ...result, ok: true });
+      } catch (error) {
         logger.error({ error }, "Admin send dummy canvas failed");
         return res.status(500).json({ ok: false, error: "server_error" });
       }

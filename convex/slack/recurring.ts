@@ -15,9 +15,9 @@ export const list = query({
 });
 
 export const getById = query({
-  args: { userId: v.string(), teamId: v.string(), id: v.string() },
+  args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
   handler: async (ctx, args) => {
-    const record = await ctx.db.get(args.id as any);
+    const record = await ctx.db.get(args.id);
     if (!record) return null;
     if (record.teamId !== args.teamId || record.userId !== args.userId) {
       return null;
@@ -59,7 +59,7 @@ export const update = mutation({
   args: {
     userId: v.string(),
     teamId: v.string(),
-    id: v.string(),
+    id: v.id("recurringQuestions"),
     question: v.optional(v.string()),
     title: v.optional(v.string()),
     frequency: v.optional(v.string()),
@@ -68,7 +68,7 @@ export const update = mutation({
     dataSelection: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db.get(args.id as any);
+    const existing = await ctx.db.get(args.id);
     if (!existing) return { ok: false };
     if (existing.teamId !== args.teamId || existing.userId !== args.userId) {
       return { ok: false };
@@ -87,9 +87,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { userId: v.string(), teamId: v.string(), id: v.string() },
+  args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
   handler: async (ctx, args) => {
-    const existing = await ctx.db.get(args.id as any);
+    const existing = await ctx.db.get(args.id);
     if (!existing) return { ok: true };
     if (existing.teamId !== args.teamId || existing.userId !== args.userId) {
       return { ok: false };

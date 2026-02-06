@@ -1,4 +1,5 @@
 import { getConvexClient } from "./convex";
+import { api } from "../../convex/_generated/api";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export const persistCanvasAnswer = async (
@@ -16,7 +17,7 @@ export const persistCanvasAnswer = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation("slack/canvas:storeAnswer", {
+  return client.mutation(api.slack.canvas.storeAnswer, {
     userId,
     teamId: teamContext.teamId,
     ...payload,

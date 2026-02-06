@@ -1,6 +1,8 @@
+import type { KnownBlock } from "@slack/types";
+
 export const buildTemplatesBlocks = (
   templates: Array<{ templateId: string; title: string; summary: string }>,
-) => {
+): KnownBlock[] => {
   if (templates.length === 0) {
     return [
       {
@@ -10,7 +12,7 @@ export const buildTemplatesBlocks = (
     ];
   }
 
-  const blocks: any[] = [];
+  const blocks: KnownBlock[] = [];
   for (const template of templates) {
     blocks.push({
       type: "section",
