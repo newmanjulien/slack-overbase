@@ -1,5 +1,5 @@
 import { getConvexClient } from "./convex";
-import { api } from "../../convex/_generated/api";
+import { api } from "../lib/convexApi";
 import { requireTeamContext, TeamContext } from "../lib/teamContext";
 
 export type Template = {

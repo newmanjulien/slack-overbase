@@ -1,5 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../convex/_generated/api";
+import { api } from "../lib/convexApi";
 import type { Id } from "../../convex/_generated/dataModel";
 import { getConfig } from "../lib/config";
 
