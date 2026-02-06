@@ -1,4 +1,5 @@
-import { App, ExpressReceiver } from "@slack/bolt";
+import pkg from "@slack/bolt";
+const { App, ExpressReceiver } = pkg;
 import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
 import { registerHandlers } from "../handlers/index.js";
