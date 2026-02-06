@@ -1,4 +1,4 @@
-import { extractTeamId, SlackPayload } from "./slackPayload";
+import { extractTeamId, SlackPayload } from "./slackPayload.js";
 
 export type TeamContext = {
   teamId: string;

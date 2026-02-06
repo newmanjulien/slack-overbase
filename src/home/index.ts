@@ -1,25 +1,25 @@
 import type { App } from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import type { HomeView } from "@slack/types";
-import { getTeamContext } from "../lib/teamContext";
-import { getOrCreatePreferences, updatePreferences } from "../data/preferences";
-import { listTemplates, getTemplateById, updateTemplateBody } from "../data/templates";
+import { getTeamContext } from "../lib/teamContext.js";
+import { getOrCreatePreferences, updatePreferences } from "../data/preferences.js";
+import { listTemplates, getTemplateById, updateTemplateBody } from "../data/templates.js";
 import {
   listRecurringQuestions,
   getRecurringQuestion,
   createRecurringQuestion,
   updateRecurringQuestion,
   deleteRecurringQuestion,
-} from "../data/recurring";
-import { buildHomeView } from "../views/home";
-import { buildEditTemplateModal } from "../features/templates/modals";
+} from "../data/recurring.js";
+import { buildHomeView } from "../views/home.js";
+import { buildEditTemplateModal } from "../features/templates/modals.js";
 import {
   buildAddRecurringQuestionModal,
   buildEditRecurringQuestionModal,
-} from "../features/recurring/modals";
-import { getPortalLinks } from "../features/portal/links";
-import { logger } from "../lib/logger";
-import type { Id } from "../../convex/_generated/dataModel";
+} from "../features/recurring/modals.js";
+import { getPortalLinks } from "../features/portal/links.js";
+import { logger } from "../lib/logger.js";
+import type { Id } from "../../convex/_generated/dataModel.js";
 
 type ActionValue = {
   value?: string;

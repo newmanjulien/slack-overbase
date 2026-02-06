@@ -1,10 +1,10 @@
 import type { App } from "@slack/bolt";
-import { logger } from "../../lib/logger";
-import { getTeamContext } from "../../lib/teamContext";
-import { claimSlackEvent } from "../../data/eventDedup";
-import { handleDirectMessage } from "../../features/messaging/service";
-import { getConversationMeta } from "../../data/conversations";
-import { getEventMeta, isDirectUserMessage } from "../../lib/slackGuards";
+import { logger } from "../../lib/logger.js";
+import { getTeamContext } from "../../lib/teamContext.js";
+import { claimSlackEvent } from "../../data/eventDedup.js";
+import { handleDirectMessage } from "../../features/messaging/service.js";
+import { getConversationMeta } from "../../data/conversations.js";
+import { getEventMeta, isDirectUserMessage } from "../../lib/slackGuards.js";
 
 const MESSAGE_DEBOUNCE_MS = 3000;
 const MAX_RETRY_AGE_MS = 30000;

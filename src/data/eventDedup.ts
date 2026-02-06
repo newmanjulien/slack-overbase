@@ -1,6 +1,6 @@
-import { getConvexClient } from "./convex";
-import { api } from "../lib/convexApi";
-import { requireTeamContext, TeamContext } from "../lib/teamContext";
+import { getConvexClient } from "./convex.js";
+import { api } from "../../convex/_generated/api.js";
+import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
 
 export const claimSlackEvent = async (
   teamContext: TeamContext,

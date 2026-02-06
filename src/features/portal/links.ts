@@ -1,7 +1,7 @@
-import { getConvexClient } from "../../data/convex";
-import { api } from "../../lib/convexApi";
-import { getConfig } from "../../lib/config";
-import { logger } from "../../lib/logger";
+import { getConvexClient } from "../../data/convex.js";
+import { api } from "../../../convex/_generated/api.js";
+import { getConfig } from "../../lib/config.js";
+import { logger } from "../../lib/logger.js";
 
 const DEFAULT_PORTAL_BASE_URL = "https://admin.overbase.app";
 const PORTAL_PATHS = {

@@ -1,9 +1,9 @@
 import { App, ExpressReceiver } from "@slack/bolt";
-import { getConfig } from "../lib/config";
-import { logger } from "../lib/logger";
-import { registerHandlers } from "../handlers";
-import { registerCanvasAdminRoutes } from "../features/canvas/adminRoutes";
-import { installationStore } from "./installationStore";
+import { getConfig } from "../lib/config.js";
+import { logger } from "../lib/logger.js";
+import { registerHandlers } from "../handlers.js";
+import { registerCanvasAdminRoutes } from "../features/canvas/adminRoutes.js";
+import { installationStore } from "./installationStore.js";
 
 export const createBoltApp = () => {
   const config = getConfig();

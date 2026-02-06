@@ -1,7 +1,7 @@
-import { getConvexClient } from "./convex";
-import { api } from "../lib/convexApi";
-import type { Id } from "../../convex/_generated/dataModel";
-import { requireTeamContext, TeamContext } from "../lib/teamContext";
+import { getConvexClient } from "./convex.js";
+import { api } from "../../convex/_generated/api.js";
+import type { Id } from "../../convex/_generated/dataModel.js";
+import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
 
 export type RecurringQuestion = {
   id: Id<"recurringQuestions">;

@@ -1,10 +1,10 @@
-import { buildWelcomeBlocks } from "./welcome";
-import { buildTemplatesBlocks } from "./templates";
-import { buildRecurringBlocks } from "./recurring";
-import { buildDatasourcesBlocks } from "./datasources";
-import { buildSettingsBlocks } from "./settings";
+import { buildWelcomeBlocks } from "./welcome.js";
+import { buildTemplatesBlocks } from "./templates.js";
+import { buildRecurringBlocks } from "./recurring.js";
+import { buildDatasourcesBlocks } from "./datasources.js";
+import { buildSettingsBlocks } from "./settings.js";
 import type { KnownBlock, PlainTextOption } from "@slack/types";
-import type { Id } from "../../convex/_generated/dataModel";
+import type { Id } from "../../convex/_generated/dataModel.js";
 
 export type HomeViewState = {
   homeTab: string;
