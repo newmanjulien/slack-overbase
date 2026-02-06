@@ -39,18 +39,13 @@ export const buildHomeView = (state: HomeViewState): KnownBlock[] => {
         type: "mrkdwn",
         text: state.userName ? `Hi ${state.userName}!` : "Hi there!",
       },
-    },
-    {
-      type: "actions",
-      elements: [
-        {
-          type: "static_select",
-          action_id: "home_tab_select",
-          options: tabOptions,
-          initial_option: selectedTab,
-          placeholder: { type: "plain_text", text: "Select tab" },
-        },
-      ],
+      accessory: {
+        type: "static_select",
+        action_id: "home_tab_select",
+        options: tabOptions,
+        initial_option: selectedTab,
+        placeholder: { type: "plain_text", text: "Select tab" },
+      },
     },
     { type: "divider" },
   ];
