@@ -1,5 +1,5 @@
 import { getConvexClient } from "../../data/convex";
-import { api } from "../../../convex/_generated/api";
+import { api } from "../../lib/convexApi";
 import { getConfig } from "../../lib/config";
 import { logger } from "../../lib/logger";
 
