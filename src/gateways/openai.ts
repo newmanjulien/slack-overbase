@@ -1,6 +1,6 @@
 import type { EasyInputMessage } from "openai/resources/responses/responses";
-import { getOpenAIClient } from "../lib/openai";
-import { extractOutputText } from "../lib/openaiResponse";
+import { getOpenAIClient } from "../lib/openai.js";
+import { extractOutputText } from "../lib/openaiResponse.js";
 
 export type InputMessage = EasyInputMessage;
 

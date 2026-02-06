@@ -1,4 +1,4 @@
-import { TeamContext } from "../../lib/teamContext";
+import { TeamContext } from "../../lib/teamContext.js";
 
 export const getDatasourcesForUser = async (
   _userId: string,

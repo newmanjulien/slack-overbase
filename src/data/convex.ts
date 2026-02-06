@@ -1,5 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
-import { getConfig } from "../lib/config";
+import { getConfig } from "../lib/config.js";
 
 let cached: ConvexHttpClient | null = null;
 

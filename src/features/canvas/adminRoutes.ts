@@ -2,9 +2,9 @@ import type { InstallationStore } from "@slack/bolt";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { sendCanvasToUser } from "./service";
-import { persistCanvasAnswer } from "../../data/canvas";
-import { getConfig } from "../../lib/config";
+import { sendCanvasToUser } from "./service.js";
+import { persistCanvasAnswer } from "../../data/canvas.js";
+import { getConfig } from "../../lib/config.js";
 
 const resolveDemoPath = (...segments: string[]) =>
   path.join(process.cwd(), "src", "features", "canvas", "demo", ...segments);

@@ -1,5 +1,5 @@
-import { getOpenAIClient } from "../../lib/openai";
-import { extractOutputText } from "../../lib/openaiResponse";
+import { getOpenAIClient } from "../../lib/openai.js";
+import { extractOutputText } from "../../lib/openaiResponse.js";
 import {
   addMessage,
   getConversationMeta,
@@ -7,11 +7,11 @@ import {
   updateConversationSummary,
   updateLastMessageAt,
   ConversationMessage,
-} from "../../data/conversations";
-import { getDatasourcesForUser } from "../datasources";
-import { SYSTEM_PROMPT, SUMMARY_PROMPT } from "./prompt";
-import { logger } from "../../lib/logger";
-import { TeamContext } from "../../lib/teamContext";
+} from "../../data/conversations.js";
+import { getDatasourcesForUser } from "../datasources.js";
+import { SYSTEM_PROMPT, SUMMARY_PROMPT } from "./prompt.js";
+import { logger } from "../../lib/logger.js";
+import { TeamContext } from "../../lib/teamContext.js";
 import type { ResponseInputItem } from "openai/resources/responses/responses";
 
 const HISTORY_WINDOW = 10;
