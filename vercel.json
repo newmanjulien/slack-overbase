@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/slack/events.ts": { "memory": 1024, "maxDuration": 10 },
+    "api/slack/install.ts": { "memory": 1024, "maxDuration": 10 },
+    "api/slack/oauth_redirect.ts": { "memory": 1024, "maxDuration": 10 }
+  }
+}

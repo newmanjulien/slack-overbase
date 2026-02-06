@@ -1,0 +1,154 @@
+import { getOpenAIClient } from "../../lib/openai";
+import { extractOutputText } from "../../lib/openaiResponse";
+import {
+  addMessage,
+  getConversationMeta,
+  listRecentMessages,
+  updateConversationSummary,
+  updateLastMessageAt,
+  ConversationMessage,
+} from "../../data/conversations";
+import { getDatasourcesForUser } from "../datasources";
+import { SYSTEM_PROMPT, SUMMARY_PROMPT } from "./prompt";
+import { logger } from "../../lib/logger";
+import { TeamContext } from "../../lib/teamContext";
+
+const HISTORY_WINDOW = 10;
+const SUMMARY_DEBOUNCE_MS = 60_000;
+const summaryQueue = new Map<string, { inFlight: boolean; lastScheduledAt: number }>();
+
+const buildSummaryKey = (userId: string, teamContext: TeamContext) =>
+  `${teamContext.teamId}:${userId}`;
+
+const summarizeHistory = async (
+  existingSummary: string,
+  olderMessages: ConversationMessage[],
+) => {
+  const client = getOpenAIClient();
+  const response = await client.responses.create({
+    model: "gpt-4.1-mini",
+    input: [
+      { role: "system", content: SUMMARY_PROMPT },
+      ...(existingSummary
+        ? [{ role: "system", content: `Existing summary: ${existingSummary}` }]
+        : []),
+      ...olderMessages,
+    ],
+  });
+  return extractOutputText(response);
+};
+
+const formatDatasourcesContext = (datasources: {
+  connectors?: Array<{ id: string; name?: string; type?: string }>;
+  people?: Array<{ id: string; name?: string; role?: string }>;
+} | null) => {
+  if (!datasources) return "User datasources: none.";
+  const connectors = datasources.connectors ?? [];
+  const people = datasources.people ?? [];
+  if (connectors.length === 0 && people.length === 0) {
+    return "User datasources: none.";
+  }
+  const connectorList = connectors
+    .map((connector) => [connector.name, connector.type].filter(Boolean).join(" - "))
+    .filter(Boolean);
+  const peopleList = people
+    .map((person) => [person.name, person.role].filter(Boolean).join(" - "))
+    .filter(Boolean);
+  const connectorLine = connectorList.length
+    ? `Connectors: ${connectorList.join(", ")}.`
+    : "Connectors: none.";
+  const peopleLine = peopleList.length
+    ? `People: ${peopleList.join(", ")}.`
+    : "People: none.";
+  return `User datasources. ${connectorLine} ${peopleLine}`.trim();
+};
+
+export const handleDirectMessage = async (payload: {
+  userId: string;
+  teamContext: TeamContext;
+  text: string;
+  source?: string;
+}) => {
+  const { userId, teamContext, text, source } = payload;
+  const [history, meta, datasources] = await Promise.all([
+    listRecentMessages(userId, teamContext),
+    getConversationMeta(userId, teamContext),
+    getDatasourcesForUser(userId, teamContext),
+  ]);
+
+  const summary = meta.summary;
+  let historyForLlm: ConversationMessage[] = history;
+
+  if (history.length > HISTORY_WINDOW) {
+    const older = history.slice(0, -HISTORY_WINDOW);
+    const recent = history.slice(-HISTORY_WINDOW);
+
+    const summaryKey = buildSummaryKey(userId, teamContext);
+    const summaryState = summaryQueue.get(summaryKey) || {
+      inFlight: false,
+      lastScheduledAt: 0,
+    };
+    const nowMs = Date.now();
+
+    if (!summaryState.inFlight && nowMs - summaryState.lastScheduledAt > SUMMARY_DEBOUNCE_MS) {
+      summaryState.inFlight = true;
+      summaryState.lastScheduledAt = nowMs;
+      summaryQueue.set(summaryKey, summaryState);
+
+      setImmediate(() => {
+        summarizeHistory(summary, older)
+          .then((updated) => {
+            if (updated && updated !== summary) {
+              return updateConversationSummary(userId, teamContext, updated);
+            }
+            return null;
+          })
+          .catch((error) => {
+            logger.warn({ error }, "Conversation summarization failed");
+          })
+          .finally(() => {
+            const latest = summaryQueue.get(summaryKey);
+            if (latest) {
+              latest.inFlight = false;
+              summaryQueue.set(summaryKey, latest);
+            }
+          });
+      });
+    }
+
+    historyForLlm = [
+      ...(summary ? [{ role: "system", content: `Conversation summary: ${summary}` }] : []),
+      ...recent,
+    ];
+  } else if (summary) {
+    historyForLlm = [{ role: "system", content: `Conversation summary: ${summary}` }, ...history];
+  }
+
+  const client = getOpenAIClient();
+  const response = await client.responses.create({
+    model: "gpt-4.1-mini",
+    input: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: formatDatasourcesContext(datasources) },
+      ...historyForLlm,
+      { role: "user", content: text },
+    ],
+  });
+
+  const reply = extractOutputText(response) || "Sorry, I could not generate a response just now.";
+
+  await addMessage(userId, teamContext, {
+    role: "user",
+    content: text,
+    source,
+  });
+  await addMessage(userId, teamContext, {
+    role: "assistant",
+    content: reply,
+    source,
+    hasBot24: reply.includes("24"),
+  });
+  await updateLastMessageAt(userId, teamContext, Date.now());
+
+  return reply;
+};
