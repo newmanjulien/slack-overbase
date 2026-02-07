@@ -253,8 +253,6 @@ export const registerHomeHandlers = (app: App) => {
         title,
         frequency,
         frequencyLabel,
-        delivery: null,
-        dataSelection: null,
       });
       await publishHome(client, body.user.id, teamContext);
     } catch (error) {

@@ -34,8 +34,8 @@ export const create = mutation({
     title: v.string(),
     frequency: v.string(),
     frequencyLabel: v.string(),
-    delivery: v.union(v.string(), v.null()),
-    dataSelection: v.union(v.string(), v.null()),
+    delivery: v.optional(v.string()),
+    dataSelection: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -46,8 +46,8 @@ export const create = mutation({
       title: args.title,
       frequency: args.frequency,
       frequencyLabel: args.frequencyLabel,
-      delivery: args.delivery,
-      dataSelection: args.dataSelection,
+      ...(typeof args.delivery !== "undefined" ? { delivery: args.delivery } : {}),
+      ...(typeof args.dataSelection !== "undefined" ? { dataSelection: args.dataSelection } : {}),
       createdAt: now,
       updatedAt: now,
     });
@@ -64,8 +64,8 @@ export const update = mutation({
     title: v.optional(v.string()),
     frequency: v.optional(v.string()),
     frequencyLabel: v.optional(v.string()),
-    delivery: v.optional(v.union(v.string(), v.null())),
-    dataSelection: v.optional(v.union(v.string(), v.null())),
+    delivery: v.optional(v.string()),
+    dataSelection: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.id);

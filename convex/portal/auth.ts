@@ -40,7 +40,7 @@ export const cleanupExpiredOneTimeCodes = internalMutation({
     while (true) {
       const expired = await ctx.db
         .query("oneTimeCodes")
-        .withIndex("by_expiresAt", (q) => q.lt("expiresAt", now))
+        .withIndex("byExpiresAt", (q) => q.lt("expiresAt", now))
         .take(100);
       if (expired.length === 0) {
         break;

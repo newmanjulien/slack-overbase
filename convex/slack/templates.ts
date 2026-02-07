@@ -46,8 +46,7 @@ export const updateBody = mutation({
 
     await ctx.db.patch(existing._id, {
       body: args.body,
-      updatedAt: new Date().toISOString(),
-      updatedAtMs: Date.now(),
+      updatedAt: Date.now(),
     });
     return { ok: true };
   },

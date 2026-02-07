@@ -19,8 +19,8 @@ const mapRecurring = (record: {
   title: string;
   frequency: string;
   frequencyLabel: string;
-  delivery: string | null;
-  dataSelection: string | null;
+  delivery?: string;
+  dataSelection?: string;
 }): RecurringQuestion => ({
   id: record._id,
   question: record.question as string,
@@ -67,8 +67,8 @@ export const createRecurringQuestion = async (
     title: string;
     frequency: string;
     frequencyLabel: string;
-    delivery: string | null;
-    dataSelection: string | null;
+    delivery: string | null | undefined;
+    dataSelection: string | null | undefined;
   },
 ) => {
   requireTeamContext(teamContext);
@@ -77,6 +77,8 @@ export const createRecurringQuestion = async (
     userId,
     teamId: teamContext.teamId,
     ...payload,
+    ...(payload.delivery === null ? { delivery: undefined } : {}),
+    ...(payload.dataSelection === null ? { dataSelection: undefined } : {}),
   });
 };
 
@@ -100,6 +102,8 @@ export const updateRecurringQuestion = async (
     teamId: teamContext.teamId,
     id,
     ...payload,
+    ...(payload.delivery === null ? { delivery: undefined } : {}),
+    ...(payload.dataSelection === null ? { dataSelection: undefined } : {}),
   });
 };
 
