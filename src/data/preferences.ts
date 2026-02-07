@@ -1,8 +1,6 @@
 import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
-import type { HomeSection } from "../home/home.js";
-import { normalizeHomeSection } from "../home/home.js";
 
 export type RecommendationSettings = {
   pastQuestions: boolean;
@@ -11,7 +9,6 @@ export type RecommendationSettings = {
 
 export type UserPreferences = {
   allowlist: string[];
-  homeSection: HomeSection;
   templateSection?: string;
   recommendations: RecommendationSettings;
   onboardingSent: boolean;
@@ -29,11 +26,10 @@ export const getOrCreatePreferences = async (
   });
   return {
     allowlist: result?.allowlist || [],
-    homeSection: normalizeHomeSection(result?.homeTab),
     templateSection: result?.templateSection || undefined,
     recommendations: {
-      pastQuestions: result?.recommendationsPastQuestionsEnabled ?? true,
-      similarExecs: result?.recommendationsSimilarExecsEnabled ?? true,
+      pastQuestions: result?.recommendPastQuestions ?? true,
+      similarExecs: result?.recommendSimilarExecs ?? true,
     },
     onboardingSent: result?.onboardingSent === true,
   };
@@ -44,20 +40,17 @@ export const updatePreferences = async (
   teamContext: TeamContext,
   updates: Partial<{
     allowlist: string[];
-    homeSection: HomeSection;
     templateSection: string;
-    recommendationsPastQuestionsEnabled: boolean;
-    recommendationsSimilarExecsEnabled: boolean;
+    recommendPastQuestions: boolean;
+    recommendSimilarExecs: boolean;
     onboardingSent: boolean;
   }>,
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const { homeSection, ...rest } = updates;
   return client.mutation(api.slack.preferences.update, {
     userId,
     teamId: teamContext.teamId,
-    ...(typeof homeSection !== "undefined" ? { homeTab: homeSection } : {}),
-    ...rest,
+    ...updates,
   });
 };

@@ -10,7 +10,12 @@ import {
   updateRecurringQuestion,
   deleteRecurringQuestion,
 } from "../data/recurring.js";
-import { buildHomeCompositionBlocks, loadHomeComposition, normalizeHomeSection } from "./composition/index.js";
+import {
+  buildHomeCompositionBlocks,
+  loadHomeComposition,
+  normalizeHomeSection,
+} from "./composition/index.js";
+import type { HomeSection } from "./home.js";
 import { buildEditTemplateModal } from "../features/templates/modals.js";
 import {
   buildAddRecurringQuestionModal,
@@ -85,11 +90,16 @@ const getTeamName = async (client: WebClient, teamId: string) => {
   }
 };
 
-const publishHome = async (client: WebClient, userId: string, teamContext: { teamId: string }) => {
+const publishHome = async (
+  client: WebClient,
+  userId: string,
+  teamContext: { teamId: string },
+  options?: { homeSection?: HomeSection },
+) => {
   const preferences = await getOrCreatePreferences(userId, teamContext);
   const profile = await getUserProfile(client, userId);
   const teamName = await getTeamName(client, teamContext.teamId);
-  const homeSection = preferences.homeSection;
+  const homeSection = options?.homeSection ?? "welcome";
   const homeState = await loadHomeComposition(
     {
       homeSection,
@@ -146,8 +156,7 @@ export const registerHomeHandlers = (app: App) => {
       const userId = getBodyUserId(body);
       if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(userId, teamContext, { homeSection: selected });
-      await publishHome(client, userId, teamContext);
+      await publishHome(client, userId, teamContext, { homeSection: selected });
     } catch (error) {
       logger.error({ error }, "home_section_select failed");
     }
@@ -177,8 +186,8 @@ export const registerHomeHandlers = (app: App) => {
       if (!userId) return;
       const teamContext = getTeamContext({ body });
       await updatePreferences(userId, teamContext, {
-        recommendationsPastQuestionsEnabled: selectedValues.includes("past_questions"),
-        recommendationsSimilarExecsEnabled: selectedValues.includes("similar_execs"),
+        recommendPastQuestions: selectedValues.includes("past_questions"),
+        recommendSimilarExecs: selectedValues.includes("similar_execs"),
       });
       await publishHome(client, userId, teamContext);
     } catch (error) {
