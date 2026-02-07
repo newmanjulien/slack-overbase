@@ -12,6 +12,11 @@ export type HomeViewState = {
   allowlist: string[];
   recommendations: { pastQuestions: boolean; similarExecs: boolean };
   userName?: string;
+  welcomeImages?: {
+    message?: string | null;
+    templates?: string | null;
+    datasources?: string | null;
+  };
   templates: Array<{ templateId: string; title: string; summary: string }>;
   recurring: Array<{
     id: Id<"recurringQuestions">;
@@ -66,5 +71,5 @@ export const buildHomeView = (state: HomeViewState): KnownBlock[] => {
     return [...baseBlocks, ...buildSettingsBlocks(state.recommendations, state.portalLinks)];
   }
 
-  return [...baseBlocks, ...buildWelcomeBlocks()];
+  return [...baseBlocks, ...buildWelcomeBlocks(state.welcomeImages)];
 };
