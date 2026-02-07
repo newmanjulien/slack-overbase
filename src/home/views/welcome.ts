@@ -117,13 +117,5 @@ export const buildWelcomeBlocks = (
     });
   }
 
-  blocks.push({
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text: "*Use /help*\nType `/help` in any channel or DM to see what I can do and get details on how to use me",
-    },
-  });
-
   return blocks;
 };
