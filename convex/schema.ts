@@ -18,8 +18,8 @@ export default defineSchema({
     recommendationsPastQuestionsEnabled: v.boolean(),
     recommendationsSimilarExecsEnabled: v.boolean(),
     onboardingSent: v.boolean(),
-    updatedAt: v.number(),
     createdAt: v.number(),
+    updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
   conversationMessages: defineTable({
@@ -36,9 +36,9 @@ export default defineSchema({
     userId: v.string(),
     teamId: v.string(),
     summary: v.optional(v.string()),
-    lastMessageAt: v.optional(v.number()),
-    updatedAt: v.number(),
     createdAt: v.number(),
+    updatedAt: v.number(),
+    lastMessageAt: v.optional(v.number()),
   }).index("byTeamUser", ["teamId", "userId"]),
 
   templates: defineTable({
@@ -49,9 +49,8 @@ export default defineSchema({
     summary: v.string(),
     body: v.string(),
     audiences: v.array(v.string()),
-    updatedAt: v.string(),
     createdAt: v.number(),
-    updatedAtMs: v.number(),
+    updatedAt: v.number(),
   })
     .index("byTeamUser", ["teamId", "userId"])
     .index("byTeamUserTemplateId", ["teamId", "userId", "templateId"]),
@@ -63,8 +62,8 @@ export default defineSchema({
     title: v.string(),
     frequency: v.string(),
     frequencyLabel: v.string(),
-    delivery: v.union(v.string(), v.null()),
-    dataSelection: v.union(v.string(), v.null()),
+    delivery: v.optional(v.string()),
+    dataSelection: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
@@ -73,12 +72,12 @@ export default defineSchema({
     canvasId: v.string(),
     userId: v.string(),
     teamId: v.string(),
-    sentAt: v.number(),
     questionText: v.optional(v.string()),
     markdown: v.optional(v.string()),
     summary: v.optional(v.string()),
     keyPoints: v.optional(v.array(v.string())),
     entities: v.optional(v.array(v.string())),
+    sentAt: v.number(),
   }).index("byTeamUserSentAt", ["teamId", "userId", "sentAt"]),
 
   slackEventDedup: defineTable({
@@ -89,14 +88,14 @@ export default defineSchema({
   }).index("byTeamEventId", ["teamId", "eventId"]),
 
   oneTimeCodes: defineTable({
-    code: v.string(),
     teamId: v.string(),
     slackUserId: v.string(),
+    code: v.string(),
     issuedAt: v.number(),
     expiresAt: v.number(),
     usedAt: v.optional(v.number()),
   })
-    .index("by_code", ["code"])
-    .index("by_team_user", ["teamId", "slackUserId"])
-    .index("by_expiresAt", ["expiresAt"]),
+    .index("byCode", ["code"])
+    .index("byTeamUser", ["teamId", "slackUserId"])
+    .index("byExpiresAt", ["expiresAt"]),
 });

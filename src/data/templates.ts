@@ -8,7 +8,7 @@ export type Template = {
   summary: string;
   body: string;
   audiences: string[];
-  updatedAt: string;
+  updatedAt: number;
 };
 
 export const listTemplates = async (
