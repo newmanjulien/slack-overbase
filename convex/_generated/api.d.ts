@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as portal_assets from "../portal/assets.js";
 import type * as portal_auth from "../portal/auth.js";
 import type * as slack_canvas from "../slack/canvas.js";
@@ -25,6 +26,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   "portal/assets": typeof portal_assets;
   "portal/auth": typeof portal_auth;
   "slack/canvas": typeof slack_canvas;

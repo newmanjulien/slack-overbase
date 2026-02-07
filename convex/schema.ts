@@ -97,5 +97,6 @@ export default defineSchema({
     usedAt: v.optional(v.number()),
   })
     .index("by_code", ["code"])
-    .index("by_team_user", ["teamId", "slackUserId"]),
+    .index("by_team_user", ["teamId", "slackUserId"])
+    .index("by_expiresAt", ["expiresAt"]),
 });
