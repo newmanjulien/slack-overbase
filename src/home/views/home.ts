@@ -11,13 +11,14 @@ export const buildHomeBaseBlocks = (state: HomeBaseState): KnownBlock[] => {
   ];
   const selectedSection =
     sectionOptions.find((option) => option.value === state.homeSection) || sectionOptions[0];
+  const greetingName = state.userName ?? "there";
 
   return [
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: state.userName ? `Hi ${state.userName}!` : "Hi there!",
+        text: `*👋 Hi, ${greetingName}*\nI'm your personal analyst. I can get reliable answers to any question`,
       },
       accessory: {
         type: "static_select",

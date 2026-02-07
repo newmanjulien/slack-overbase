@@ -80,6 +80,10 @@ export default defineSchema({
     sentAt: v.number(),
   }).index("byTeamUserSentAt", ["teamId", "userId", "sentAt"]),
 
+  // Stores one row per processed Slack event so we can skip duplicates. Slack
+  // retries on timeouts or slow responses, which means the same event ID can
+  // arrive more than once. The `claimEvent` mutation checks this table before
+  // doing any work, inserts a row on first sight, and skips repeats after that.
   slackEventDedup: defineTable({
     teamId: v.string(),
     eventId: v.string(),
