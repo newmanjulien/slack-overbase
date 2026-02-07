@@ -1,5 +1,5 @@
 import type { Installation, InstallationQuery, InstallationStore } from "@slack/bolt";
-import { getConvexClient } from "../data/convex.js";
+import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 
 export const installationStore: InstallationStore = {

@@ -1,8 +1,9 @@
 import type { KnownBlock } from "@slack/types";
+import type { HomeSectionDataMap } from "../types.js";
 
 export const buildDatasourcesBlocks = (
-  allowlist: string[],
-  portalLinks: { connectorsUrl?: string; peopleUrl?: string; paymentsUrl?: string },
+  allowlist: HomeSectionDataMap["datasources"]["allowlist"],
+  portalLinks: HomeSectionDataMap["datasources"]["portalLinks"],
 ): KnownBlock[] => [
   {
     type: "section",

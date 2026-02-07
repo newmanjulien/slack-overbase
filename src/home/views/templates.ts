@@ -1,7 +1,8 @@
 import type { KnownBlock } from "@slack/types";
+import type { HomeSectionDataMap } from "../types.js";
 
 export const buildTemplatesBlocks = (
-  templates: Array<{ templateId: string; title: string; summary: string }>,
+  templates: HomeSectionDataMap["templates"]["templates"],
 ): KnownBlock[] => {
   if (templates.length === 0) {
     return [

@@ -1,7 +1,8 @@
 import type { KnownBlock } from "@slack/types";
 import type { GenericId as StorageId } from "convex/values";
+import type { HomeSectionDataMap } from "../types.js";
 
-type WelcomeImages = {
+export type WelcomeImages = {
   message?: string | null;
   templates?: string | null;
   datasources?: string | null;
@@ -22,7 +23,9 @@ export const getWelcomeImageIds = (): Record<
   datasources: WELCOME_IMAGE_IDS.datasources as StorageId<"_storage">,
 });
 
-export const buildWelcomeBlocks = (images?: WelcomeImages): KnownBlock[] => {
+export const buildWelcomeBlocks = (
+  images: HomeSectionDataMap["welcome"]["welcomeImages"],
+): KnownBlock[] => {
   const blocks: KnownBlock[] = [
     {
       type: "header",
