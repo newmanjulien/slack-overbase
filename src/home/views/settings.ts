@@ -1,8 +1,9 @@
 import type { KnownBlock, PlainTextOption } from "@slack/types";
+import type { HomeSectionDataMap } from "../types.js";
 
 export const buildSettingsBlocks = (
-  recommendations: { pastQuestions: boolean; similarExecs: boolean },
-  portalLinks: { paymentsUrl?: string },
+  recommendations: HomeSectionDataMap["settings"]["recommendations"],
+  portalLinks: HomeSectionDataMap["settings"]["portalLinks"],
 ): KnownBlock[] => {
   const options: PlainTextOption[] = [
     {

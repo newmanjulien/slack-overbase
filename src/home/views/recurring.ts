@@ -1,13 +1,8 @@
 import type { KnownBlock } from "@slack/types";
-import type { Id } from "../../convex/_generated/dataModel.js";
+import type { HomeSectionDataMap } from "../types.js";
 
 export const buildRecurringBlocks = (
-  recurring: Array<{
-    id: Id<"recurringQuestions">;
-    title: string;
-    question: string;
-    frequencyLabel: string;
-  }>,
+  recurring: HomeSectionDataMap["recurring"]["recurring"],
 ): KnownBlock[] => {
   if (recurring.length === 0) {
     return [

@@ -1,4 +1,4 @@
-import { getConvexClient } from "../../data/convex.js";
+import { getConvexClient } from "../../lib/convexClient.js";
 import { api } from "../../../convex/_generated/api.js";
 import { getConfig } from "../../lib/config.js";
 import { logger } from "../../lib/logger.js";
@@ -8,6 +8,17 @@ const PORTAL_PATHS = {
   connectors: "/connectors",
   people: "/people",
   payments: "/payments",
+};
+const PORTAL_URL_KEYS = {
+  connectors: "connectorsUrl",
+  people: "peopleUrl",
+  payments: "paymentsUrl",
+} as const;
+type PortalPathKey = keyof typeof PORTAL_PATHS;
+type PortalLinks = {
+  connectorsUrl?: string;
+  peopleUrl?: string;
+  paymentsUrl?: string;
 };
 
 const normalizeBaseUrl = (rawBaseUrl?: string) => {
@@ -42,51 +53,43 @@ export const getPortalLinks = async (payload: {
   userName?: string;
   userAvatar?: string;
   teamName?: string;
-}) => {
+}): Promise<PortalLinks> => {
+  return getPortalLinksForPaths({ ...payload, paths: ["connectors", "people", "payments"] });
+};
+
+export const getPortalLinksForPaths = async (payload: {
+  teamId: string;
+  userId: string;
+  userName?: string;
+  userAvatar?: string;
+  teamName?: string;
+  paths: PortalPathKey[];
+}): Promise<PortalLinks> => {
   try {
     const config = getConfig();
     const baseUrl = normalizeBaseUrl(config.PORTAL_BASE_URL);
-    const [connectorsCode, peopleCode, paymentsCode] = await Promise.all([
-      issueCode({
-        teamId: payload.teamId,
-        slackUserId: payload.userId,
-        teamName: payload.teamName,
-        name: payload.userName,
-        avatarUrl: payload.userAvatar,
+    const results = await Promise.all(
+      payload.paths.map(async (path) => {
+        const code = await issueCode({
+          teamId: payload.teamId,
+          slackUserId: payload.userId,
+          teamName: payload.teamName,
+          name: payload.userName,
+          avatarUrl: payload.userAvatar,
+        });
+        const url = code
+          ? buildPortalUrl(baseUrl, code, PORTAL_PATHS[path])
+          : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`;
+        return [PORTAL_URL_KEYS[path], url] as const;
       }),
-      issueCode({
-        teamId: payload.teamId,
-        slackUserId: payload.userId,
-        teamName: payload.teamName,
-        name: payload.userName,
-        avatarUrl: payload.userAvatar,
-      }),
-      issueCode({
-        teamId: payload.teamId,
-        slackUserId: payload.userId,
-        teamName: payload.teamName,
-        name: payload.userName,
-        avatarUrl: payload.userAvatar,
-      }),
-    ]);
-
-    return {
-      connectorsUrl: connectorsCode
-        ? buildPortalUrl(baseUrl, connectorsCode, PORTAL_PATHS.connectors)
-        : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.connectors}`,
-      peopleUrl: peopleCode
-        ? buildPortalUrl(baseUrl, peopleCode, PORTAL_PATHS.people)
-        : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.people}`,
-      paymentsUrl: paymentsCode
-        ? buildPortalUrl(baseUrl, paymentsCode, PORTAL_PATHS.payments)
-        : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.payments}`,
-    };
+    );
+    return Object.fromEntries(results) as PortalLinks;
   } catch (error) {
     logger.error({ error }, "Failed to build portal links");
-    return {
-      connectorsUrl: `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.connectors}`,
-      peopleUrl: `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.people}`,
-      paymentsUrl: `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS.payments}`,
-    };
+    const fallbackEntries = payload.paths.map((path) => [
+      PORTAL_URL_KEYS[path],
+      `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`,
+    ]);
+    return Object.fromEntries(fallbackEntries) as PortalLinks;
   }
 };

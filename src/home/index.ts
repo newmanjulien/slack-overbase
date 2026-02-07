@@ -3,25 +3,21 @@ import type { WebClient } from "@slack/web-api";
 import type { HomeView } from "@slack/types";
 import { getTeamContext } from "../lib/teamContext.js";
 import { getOrCreatePreferences, updatePreferences } from "../data/preferences.js";
-import { listTemplates, getTemplateById, updateTemplateBody } from "../data/templates.js";
+import { getTemplateById, updateTemplateBody } from "../data/templates.js";
 import {
-  listRecurringQuestions,
   getRecurringQuestion,
   createRecurringQuestion,
   updateRecurringQuestion,
   deleteRecurringQuestion,
 } from "../data/recurring.js";
-import { buildHomeView } from "../views/home.js";
+import { buildHomeCompositionBlocks, loadHomeComposition, normalizeHomeSection } from "./composition/index.js";
 import { buildEditTemplateModal } from "../features/templates/modals.js";
 import {
   buildAddRecurringQuestionModal,
   buildEditRecurringQuestionModal,
 } from "../features/recurring/modals.js";
-import { getPortalLinks } from "../features/portal/links.js";
 import { logger } from "../lib/logger.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
-import { getAssetUrlById } from "../data/assets.js";
-import { getWelcomeImageIds } from "../views/welcome.js";
 
 type ActionValue = {
   value?: string;
@@ -93,53 +89,24 @@ const publishHome = async (client: WebClient, userId: string, teamContext: { tea
   const preferences = await getOrCreatePreferences(userId, teamContext);
   const profile = await getUserProfile(client, userId);
   const teamName = await getTeamName(client, teamContext.teamId);
-  const portalLinks = await getPortalLinks({
-    teamId: teamContext.teamId,
-    userId,
-    userName: profile.name,
-    userAvatar: profile.avatar,
-    teamName,
-  });
-
-  const templates = preferences.homeTab === "templates"
-    ? await listTemplates(userId, teamContext)
-    : [];
-  const recurring = preferences.homeTab === "recurring"
-    ? await listRecurringQuestions(userId, teamContext)
-    : [];
-  const welcomeImageIds = getWelcomeImageIds();
-  const [messageImageUrl, templatesImageUrl, datasourcesImageUrl] = await Promise.all([
-    getAssetUrlById(welcomeImageIds.message),
-    getAssetUrlById(welcomeImageIds.templates),
-    getAssetUrlById(welcomeImageIds.datasources),
-  ]);
+  const homeSection = preferences.homeSection;
+  const homeState = await loadHomeComposition(
+    {
+      homeSection,
+      userName: profile.firstName,
+    },
+    {
+      userId,
+      teamContext,
+      preferences,
+      profile,
+      teamName,
+    },
+  );
 
   const view: HomeView = {
     type: "home",
-    blocks: buildHomeView({
-      homeTab: preferences.homeTab,
-      templateSection: preferences.templateSection,
-      allowlist: preferences.allowlist,
-      recommendations: preferences.recommendations,
-      userName: profile.firstName,
-      templates: templates.map((template) => ({
-        templateId: template.templateId,
-        title: template.title,
-        summary: template.summary,
-      })),
-      recurring: recurring.map((item) => ({
-        id: item.id,
-        title: item.title,
-        question: item.question,
-        frequencyLabel: item.frequencyLabel,
-      })),
-      welcomeImages: {
-        message: messageImageUrl,
-        templates: templatesImageUrl,
-        datasources: datasourcesImageUrl,
-      },
-      portalLinks,
-    }),
+    blocks: buildHomeCompositionBlocks(homeState),
   };
 
   await client.views.publish({
@@ -171,18 +138,18 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.action("home_tab_select", async ({ ack, body, client }) => {
+  app.action("home_section_select", async ({ ack, body, client }) => {
     await ack();
     try {
       const action = getFirstAction(body);
-      const selected = action?.selected_option?.value || "welcome";
+      const selected = normalizeHomeSection(action?.selected_option?.value);
       const userId = getBodyUserId(body);
       if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(userId, teamContext, { homeTab: selected });
+      await updatePreferences(userId, teamContext, { homeSection: selected });
       await publishHome(client, userId, teamContext);
     } catch (error) {
-      logger.error({ error }, "home_tab_select failed");
+      logger.error({ error }, "home_section_select failed");
     }
   });
 

@@ -1,4 +1,4 @@
-import { getConvexClient } from "./convex.js";
+import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
 import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
