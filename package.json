@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "esbuild src/index.ts src/**/*.ts --platform=node --format=esm --outdir=dist --outbase=src --sourcemap",
+    "build": "esbuild src/index.ts \"src/**/*.ts\" --platform=node --format=esm --outdir=dist --outbase=src --sourcemap",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts",
