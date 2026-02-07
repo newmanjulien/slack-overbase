@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server.js";
+import { internalMutation, mutation } from "../_generated/server.js";
 import { v } from "convex/values";
 
 const TTL_MS = 10 * 60 * 1000;
@@ -29,5 +29,30 @@ export const issueOneTimeCode = mutation({
       usedAt: undefined,
     });
     return { code };
+  },
+});
+
+export const cleanupExpiredOneTimeCodes = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    let deleted = 0;
+    while (true) {
+      const expired = await ctx.db
+        .query("oneTimeCodes")
+        .withIndex("by_expiresAt", (q) => q.lt("expiresAt", now))
+        .take(100);
+      if (expired.length === 0) {
+        break;
+      }
+      for (const doc of expired) {
+        await ctx.db.delete(doc._id);
+      }
+      deleted += expired.length;
+      if (expired.length < 100) {
+        break;
+      }
+    }
+    return { deleted };
   },
 });

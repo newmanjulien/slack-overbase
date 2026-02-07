@@ -20,6 +20,8 @@ import {
 import { getPortalLinks } from "../features/portal/links.js";
 import { logger } from "../lib/logger.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
+import { getAssetUrlById } from "../data/assets.js";
+import { getWelcomeImageIds } from "../views/welcome.js";
 
 type ActionValue = {
   value?: string;
@@ -105,6 +107,12 @@ const publishHome = async (client: WebClient, userId: string, teamContext: { tea
   const recurring = preferences.homeTab === "recurring"
     ? await listRecurringQuestions(userId, teamContext)
     : [];
+  const welcomeImageIds = getWelcomeImageIds();
+  const [messageImageUrl, templatesImageUrl, datasourcesImageUrl] = await Promise.all([
+    getAssetUrlById(welcomeImageIds.message),
+    getAssetUrlById(welcomeImageIds.templates),
+    getAssetUrlById(welcomeImageIds.datasources),
+  ]);
 
   const view: HomeView = {
     type: "home",
@@ -125,6 +133,11 @@ const publishHome = async (client: WebClient, userId: string, teamContext: { tea
         question: item.question,
         frequencyLabel: item.frequencyLabel,
       })),
+      welcomeImages: {
+        message: messageImageUrl,
+        templates: templatesImageUrl,
+        datasources: datasourcesImageUrl,
+      },
       portalLinks,
     }),
   };
