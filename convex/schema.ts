@@ -13,7 +13,6 @@ export default defineSchema({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.array(v.string()),
-    homeTab: v.string(),
     templateSection: v.optional(v.string()),
     recommendationsPastQuestionsEnabled: v.boolean(),
     recommendationsSimilarExecsEnabled: v.boolean(),

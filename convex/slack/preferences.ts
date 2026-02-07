@@ -18,7 +18,6 @@ export const getOrCreate = mutation({
       userId: args.userId,
       teamId: args.teamId,
       allowlist: [],
-      homeTab: "welcome",
       templateSection: undefined,
       recommendationsPastQuestionsEnabled: true,
       recommendationsSimilarExecsEnabled: true,
@@ -36,7 +35,6 @@ export const update = mutation({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.optional(v.array(v.string())),
-    homeTab: v.optional(v.string()),
     templateSection: v.optional(v.string()),
     recommendationsPastQuestionsEnabled: v.optional(v.boolean()),
     recommendationsSimilarExecsEnabled: v.optional(v.boolean()),
@@ -55,7 +53,6 @@ export const update = mutation({
         userId: args.userId,
         teamId: args.teamId,
         allowlist: args.allowlist ?? [],
-        homeTab: args.homeTab ?? "welcome",
         templateSection: args.templateSection,
         recommendationsPastQuestionsEnabled: args.recommendationsPastQuestionsEnabled ?? true,
         recommendationsSimilarExecsEnabled: args.recommendationsSimilarExecsEnabled ?? true,
@@ -68,7 +65,6 @@ export const update = mutation({
 
     await ctx.db.patch(existing._id, {
       ...(typeof args.allowlist !== "undefined" ? { allowlist: args.allowlist } : {}),
-      ...(typeof args.homeTab !== "undefined" ? { homeTab: args.homeTab } : {}),
       ...(typeof args.templateSection !== "undefined" ? { templateSection: args.templateSection } : {}),
       ...(typeof args.recommendationsPastQuestionsEnabled === "boolean"
         ? { recommendationsPastQuestionsEnabled: args.recommendationsPastQuestionsEnabled }

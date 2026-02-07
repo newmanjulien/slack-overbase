@@ -81,16 +81,13 @@ export const convex = {
       userId: string;
       teamId: string;
       allowlist?: string[];
-      homeSection?: string;
       templateSection?: string;
       recommendationsPastQuestionsEnabled?: boolean;
       recommendationsSimilarExecsEnabled?: boolean;
       onboardingSent?: boolean;
     }) => {
-      const { homeSection, ...rest } = args;
       return getClient().mutation(api.slack.preferences.update, {
-        ...rest,
-        ...(typeof homeSection !== "undefined" ? { homeTab: homeSection } : {}),
+        ...args,
       });
     },
   },
