@@ -1,50 +1,99 @@
 import type { KnownBlock, PlainTextOption } from "@slack/types";
 import type { HomeSectionDataMap } from "../types.js";
 
+const pastQuestionsOption: PlainTextOption = {
+  text: { type: "plain_text", text: "Based on your past questions" },
+  value: "past_questions",
+};
+
+const similarExecsOption: PlainTextOption = {
+  text: {
+    type: "plain_text",
+    text: "Based on questions asked by similar execs",
+  },
+  value: "similar_execs",
+};
+
+const legalLinks =
+  "• <https://example.com/terms-of-service|Terms of Service>\n" +
+  "• <https://example.com/privacy-policy|Privacy Policy>\n" +
+  "• <https://example.com/data-processing-addendum|Data Processing Addendum>";
+
+const buildRecommendationsElement = (
+  recommendations: HomeSectionDataMap["settings"]["recommendations"],
+) => {
+  const initialOptions: PlainTextOption[] = [
+    ...(recommendations.pastQuestions ? [pastQuestionsOption] : []),
+    ...(recommendations.similarExecs ? [similarExecsOption] : []),
+  ];
+
+  const element = {
+    type: "checkboxes" as const,
+    action_id: "settings_recommendations",
+    options: [pastQuestionsOption, similarExecsOption],
+  };
+
+  if (initialOptions.length > 0) {
+    element.initial_options = initialOptions;
+  }
+
+  return element;
+};
+
 export const buildSettingsBlocks = (
   recommendations: HomeSectionDataMap["settings"]["recommendations"],
   portalLinks: HomeSectionDataMap["settings"]["portalLinks"],
 ): KnownBlock[] => {
-  const options: PlainTextOption[] = [
-    {
-      text: { type: "plain_text", text: "Use past questions" },
-      value: "past_questions",
-    },
-    {
-      text: { type: "plain_text", text: "Use similar execs" },
-      value: "similar_execs",
-    },
-  ];
-  const initialOptions: PlainTextOption[] = [
-    ...(recommendations.pastQuestions ? [options[0]] : []),
-    ...(recommendations.similarExecs ? [options[1]] : []),
-  ];
-
   return [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "Payments" },
+    },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: "Recommendation settings:",
+        text: "You're currently on the on the pay per question plan",
       },
     },
     {
       type: "actions",
       elements: [
         {
-          type: "checkboxes",
-          action_id: "settings_recommendations",
-          options,
-          initial_options: initialOptions,
+          type: "button",
+          text: { type: "plain_text", text: "Manage payments" },
+          url: portalLinks.paymentsUrl || "https://example.com/payments",
         },
       ],
+    },
+    {
+      type: "header",
+      text: { type: "plain_text", text: "Recommendations" },
     },
     {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `Payments and billing: <${portalLinks.paymentsUrl || ""}|Open billing>`,
+        text: "Control your recommendations and notifications",
       },
+    },
+    {
+      type: "section",
+      block_id: "settings_recommendations_block",
+      text: { type: "mrkdwn", text: "*Recommendations*" },
+      accessory: buildRecommendationsElement(recommendations),
+    },
+    {
+      type: "header",
+      text: { type: "plain_text", text: "Legal agreements" },
+    },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: "Review our legal agreements:" },
+    },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: legalLinks },
     },
   ];
 };

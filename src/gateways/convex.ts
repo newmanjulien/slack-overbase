@@ -82,8 +82,8 @@ export const convex = {
       teamId: string;
       allowlist?: string[];
       templateSection?: string;
-      recommendationsPastQuestionsEnabled?: boolean;
-      recommendationsSimilarExecsEnabled?: boolean;
+      recommendPastQuestions?: boolean;
+      recommendSimilarExecs?: boolean;
       onboardingSent?: boolean;
     }) => {
       return getClient().mutation(api.slack.preferences.update, {

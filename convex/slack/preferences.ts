@@ -19,8 +19,8 @@ export const getOrCreate = mutation({
       teamId: args.teamId,
       allowlist: [],
       templateSection: undefined,
-      recommendationsPastQuestionsEnabled: true,
-      recommendationsSimilarExecsEnabled: true,
+      recommendPastQuestions: true,
+      recommendSimilarExecs: true,
       onboardingSent: false,
       createdAt: now,
       updatedAt: now,
@@ -36,8 +36,8 @@ export const update = mutation({
     teamId: v.string(),
     allowlist: v.optional(v.array(v.string())),
     templateSection: v.optional(v.string()),
-    recommendationsPastQuestionsEnabled: v.optional(v.boolean()),
-    recommendationsSimilarExecsEnabled: v.optional(v.boolean()),
+    recommendPastQuestions: v.optional(v.boolean()),
+    recommendSimilarExecs: v.optional(v.boolean()),
     onboardingSent: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -54,8 +54,8 @@ export const update = mutation({
         teamId: args.teamId,
         allowlist: args.allowlist ?? [],
         templateSection: args.templateSection,
-        recommendationsPastQuestionsEnabled: args.recommendationsPastQuestionsEnabled ?? true,
-        recommendationsSimilarExecsEnabled: args.recommendationsSimilarExecsEnabled ?? true,
+        recommendPastQuestions: args.recommendPastQuestions ?? true,
+        recommendSimilarExecs: args.recommendSimilarExecs ?? true,
         onboardingSent: args.onboardingSent ?? false,
         createdAt: now,
         updatedAt: now,
@@ -66,11 +66,11 @@ export const update = mutation({
     await ctx.db.patch(existing._id, {
       ...(typeof args.allowlist !== "undefined" ? { allowlist: args.allowlist } : {}),
       ...(typeof args.templateSection !== "undefined" ? { templateSection: args.templateSection } : {}),
-      ...(typeof args.recommendationsPastQuestionsEnabled === "boolean"
-        ? { recommendationsPastQuestionsEnabled: args.recommendationsPastQuestionsEnabled }
+      ...(typeof args.recommendPastQuestions === "boolean"
+        ? { recommendPastQuestions: args.recommendPastQuestions }
         : {}),
-      ...(typeof args.recommendationsSimilarExecsEnabled === "boolean"
-        ? { recommendationsSimilarExecsEnabled: args.recommendationsSimilarExecsEnabled }
+      ...(typeof args.recommendSimilarExecs === "boolean"
+        ? { recommendSimilarExecs: args.recommendSimilarExecs }
         : {}),
       ...(typeof args.onboardingSent === "boolean" ? { onboardingSent: args.onboardingSent } : {}),
       updatedAt: now,

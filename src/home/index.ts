@@ -186,8 +186,8 @@ export const registerHomeHandlers = (app: App) => {
       if (!userId) return;
       const teamContext = getTeamContext({ body });
       await updatePreferences(userId, teamContext, {
-        recommendationsPastQuestionsEnabled: selectedValues.includes("past_questions"),
-        recommendationsSimilarExecsEnabled: selectedValues.includes("similar_execs"),
+        recommendPastQuestions: selectedValues.includes("past_questions"),
+        recommendSimilarExecs: selectedValues.includes("similar_execs"),
       });
       await publishHome(client, userId, teamContext);
     } catch (error) {

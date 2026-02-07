@@ -28,8 +28,8 @@ export const getOrCreatePreferences = async (
     allowlist: result?.allowlist || [],
     templateSection: result?.templateSection || undefined,
     recommendations: {
-      pastQuestions: result?.recommendationsPastQuestionsEnabled ?? true,
-      similarExecs: result?.recommendationsSimilarExecsEnabled ?? true,
+      pastQuestions: result?.recommendPastQuestions ?? true,
+      similarExecs: result?.recommendSimilarExecs ?? true,
     },
     onboardingSent: result?.onboardingSent === true,
   };
@@ -41,8 +41,8 @@ export const updatePreferences = async (
   updates: Partial<{
     allowlist: string[];
     templateSection: string;
-    recommendationsPastQuestionsEnabled: boolean;
-    recommendationsSimilarExecsEnabled: boolean;
+    recommendPastQuestions: boolean;
+    recommendSimilarExecs: boolean;
     onboardingSent: boolean;
   }>,
 ) => {
