@@ -18,7 +18,7 @@ export const getOrCreate = mutation({
       userId: args.userId,
       teamId: args.teamId,
       allowlist: [],
-      templateSection: undefined,
+      templateSection: null,
       recommendPastQuestions: true,
       recommendSimilarExecs: true,
       onboardingSent: false,
@@ -35,7 +35,7 @@ export const update = mutation({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.optional(v.array(v.string())),
-    templateSection: v.optional(v.string()),
+    templateSection: v.optional(v.union(v.string(), v.null())),
     recommendPastQuestions: v.optional(v.boolean()),
     recommendSimilarExecs: v.optional(v.boolean()),
     onboardingSent: v.optional(v.boolean()),
@@ -51,13 +51,13 @@ export const update = mutation({
     if (!existing) {
       await ctx.db.insert("userPreferences", {
         userId: args.userId,
-        teamId: args.teamId,
-        allowlist: args.allowlist ?? [],
-        templateSection: args.templateSection,
-        recommendPastQuestions: args.recommendPastQuestions ?? true,
-        recommendSimilarExecs: args.recommendSimilarExecs ?? true,
-        onboardingSent: args.onboardingSent ?? false,
-        createdAt: now,
+      teamId: args.teamId,
+      allowlist: args.allowlist ?? [],
+      templateSection: typeof args.templateSection === "undefined" ? null : args.templateSection,
+      recommendPastQuestions: args.recommendPastQuestions ?? true,
+      recommendSimilarExecs: args.recommendSimilarExecs ?? true,
+      onboardingSent: args.onboardingSent ?? false,
+      createdAt: now,
         updatedAt: now,
       });
       return { ok: true };

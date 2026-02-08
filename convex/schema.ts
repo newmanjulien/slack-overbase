@@ -13,7 +13,7 @@ export default defineSchema({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.array(v.string()),
-    templateSection: v.optional(v.string()),
+    templateSection: v.optional(v.union(v.string(), v.null())),
     recommendPastQuestions: v.boolean(),
     recommendSimilarExecs: v.boolean(),
     onboardingSent: v.boolean(),

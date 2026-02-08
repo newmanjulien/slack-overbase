@@ -9,7 +9,7 @@ export type RecommendationSettings = {
 
 export type UserPreferences = {
   allowlist: string[];
-  templateSection?: string;
+  templateSection: string | null;
   recommendations: RecommendationSettings;
   onboardingSent: boolean;
 };
@@ -26,7 +26,7 @@ export const getOrCreatePreferences = async (
   });
   return {
     allowlist: result?.allowlist || [],
-    templateSection: result?.templateSection || undefined,
+    templateSection: typeof result?.templateSection === "string" ? result.templateSection : null,
     recommendations: {
       pastQuestions: result?.recommendPastQuestions ?? true,
       similarExecs: result?.recommendSimilarExecs ?? true,
@@ -40,15 +40,15 @@ export const updatePreferences = async (
   teamContext: TeamContext,
   updates: Partial<{
     allowlist: string[];
-    templateSection: string;
+    templateSection: string | null;
     recommendPastQuestions: boolean;
     recommendSimilarExecs: boolean;
     onboardingSent: boolean;
   }>,
-) => {
+): Promise<void> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation(api.slack.preferences.update, {
+  await client.mutation(api.slack.preferences.update, {
     userId,
     teamId: teamContext.teamId,
     ...updates,
