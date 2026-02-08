@@ -14,10 +14,20 @@ import { logger } from "../../lib/logger.js";
 import type { Id } from "../../../convex/_generated/dataModel.js";
 import type { PublishHome } from "../publish.js";
 import type { HomeActionArgs, HomeCommandArgs, HomeViewArgs } from "./types.js";
+import { getSelectedOptionLabel, getSelectedOptionValue, getTextValue, parseMetadata } from "./viewState.js";
+import { toRecurringId } from "../ids.js";
 
-const toRecurringId = (value: string): Id<"recurringQuestions"> | null => {
-  if (!value) return null;
-  return value as Id<"recurringQuestions">;
+type RecurringAction = {
+  action: "edit" | "delete";
+  id: Id<"recurringQuestions">;
+};
+
+const parseRecurringAction = (raw: string): RecurringAction | null => {
+  const [action, id] = raw.split(":");
+  if (action !== "edit" && action !== "delete") return null;
+  const recurringId = toRecurringId(id);
+  if (!recurringId) return null;
+  return { action, id: recurringId };
 };
 
 export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome) => {
@@ -39,11 +49,20 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
       await ack();
       try {
         const teamContext = getTeamContext({ body });
-        const question = view.state.values?.question?.value?.value || "";
-        const title = view.state.values?.title?.value?.value || "";
-        const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
-        const frequencyLabel =
-          view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
+        const question = getTextValue(view.state?.values, "question", "value");
+        const title = getTextValue(view.state?.values, "title", "value");
+        const frequency = getSelectedOptionValue(
+          view.state?.values,
+          "frequency",
+          "value",
+          "weekly",
+        );
+        const frequencyLabel = getSelectedOptionLabel(
+          view.state?.values,
+          "frequency",
+          "value",
+          "Weekly",
+        );
 
         await createRecurringQuestion(body.user.id, teamContext, {
           question,
@@ -65,24 +84,22 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
     async ({ ack, action, body, client }: HomeActionArgs<OverflowAction>) => {
       await ack();
       try {
-        const selected = action.selected_option?.value || "";
         const userId = body.user.id;
         const triggerId = body.trigger_id;
         if (!userId) return;
-        const [actionType, id] = selected.split(":");
+        const parsed = parseRecurringAction(action.selected_option?.value || "");
+        if (!parsed) return;
         const teamContext = getTeamContext({ body });
-        const recurringId = toRecurringId(id);
-        if (!recurringId) return;
 
-        if (actionType === "delete") {
-          await deleteRecurringQuestion(userId, teamContext, recurringId);
+        if (parsed.action === "delete") {
+          await deleteRecurringQuestion(userId, teamContext, parsed.id);
           await publishHome(client, userId, teamContext);
           return;
         }
 
-        if (actionType === "edit") {
+        if (parsed.action === "edit") {
           if (!triggerId) return;
-          const recurring = await getRecurringQuestion(userId, teamContext, recurringId);
+          const recurring = await getRecurringQuestion(userId, teamContext, parsed.id);
           if (!recurring) return;
           await client.views.open({
             trigger_id: triggerId,
@@ -107,14 +124,23 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
       await ack();
       try {
         const teamContext = getTeamContext({ body });
-        const metadata = JSON.parse(view.private_metadata || "{}");
+        const metadata = parseMetadata(view.private_metadata);
         const id = toRecurringId(metadata.id);
         if (!id) return;
-        const question = view.state.values?.question?.value?.value || "";
-        const title = view.state.values?.title?.value?.value || "";
-        const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
-        const frequencyLabel =
-          view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
+        const question = getTextValue(view.state?.values, "question", "value");
+        const title = getTextValue(view.state?.values, "title", "value");
+        const frequency = getSelectedOptionValue(
+          view.state?.values,
+          "frequency",
+          "value",
+          "weekly",
+        );
+        const frequencyLabel = getSelectedOptionLabel(
+          view.state?.values,
+          "frequency",
+          "value",
+          "Weekly",
+        );
 
         await updateRecurringQuestion(body.user.id, teamContext, id, {
           question,

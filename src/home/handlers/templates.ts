@@ -5,6 +5,7 @@ import { buildEditTemplateModal } from "../../features/templates/modals.js";
 import { logger } from "../../lib/logger.js";
 import type { PublishHome } from "../publish.js";
 import type { HomeActionArgs, HomeViewArgs } from "./types.js";
+import { getTextValue, parseMetadata } from "./viewState.js";
 
 export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome) => {
   app.action(
@@ -40,9 +41,9 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
       await ack();
       try {
         const teamContext = getTeamContext({ body });
-        const metadata = JSON.parse(view.private_metadata || "{}");
-        const templateId = metadata.templateId;
-        const newBody = view.state.values?.body?.value?.value || "";
+        const metadata = parseMetadata(view.private_metadata);
+        const templateId = typeof metadata.templateId === "string" ? metadata.templateId : "";
+        const newBody = getTextValue(view.state?.values, "body", "value");
         if (!templateId) return;
         await updateTemplateBody(body.user.id, teamContext, templateId, newBody);
         await publishHome(client, body.user.id, teamContext);

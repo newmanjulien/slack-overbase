@@ -6,11 +6,10 @@ import {
   loadHomeComposition,
 } from "./composition/index.js";
 import type { HomeSection } from "./home.js";
+import type { TeamContext } from "../lib/teamContext.js";
 import { logger } from "../lib/logger.js";
 
 export type PublishHome = typeof publishHome;
-
-type TeamContextRef = { teamId: string };
 
 const getUserProfile = async (client: WebClient, userId: string) => {
   try {
@@ -46,7 +45,7 @@ const getTeamName = async (client: WebClient, teamId: string) => {
 export const publishHome = async (
   client: WebClient,
   userId: string,
-  teamContext: TeamContextRef,
+  teamContext: TeamContext,
   options?: { homeSection?: HomeSection },
 ) => {
   const preferences = await getOrCreatePreferences(userId, teamContext);

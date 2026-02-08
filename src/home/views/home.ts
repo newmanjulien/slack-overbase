@@ -1,14 +1,20 @@
 import type { KnownBlock, PlainTextOption } from "@slack/types";
+import { HOME_SECTIONS, type HomeSection } from "../home.js";
 import type { HomeBaseState } from "../types.js";
 
+const SECTION_LABELS: Record<HomeSection, string> = {
+  welcome: "Welcome",
+  templates: "Templates",
+  recurring: "Recurring",
+  datasources: "Datasources",
+  settings: "Settings",
+};
+
 export const buildHomeBaseBlocks = (state: HomeBaseState): KnownBlock[] => {
-  const sectionOptions: PlainTextOption[] = [
-    { text: { type: "plain_text", text: "Welcome" }, value: "welcome" },
-    { text: { type: "plain_text", text: "Templates" }, value: "templates" },
-    { text: { type: "plain_text", text: "Recurring" }, value: "recurring" },
-    { text: { type: "plain_text", text: "Datasources" }, value: "datasources" },
-    { text: { type: "plain_text", text: "Settings" }, value: "settings" },
-  ];
+  const sectionOptions: PlainTextOption[] = HOME_SECTIONS.map((section) => ({
+    text: { type: "plain_text", text: SECTION_LABELS[section] },
+    value: section,
+  }));
   const selectedSection =
     sectionOptions.find((option) => option.value === state.homeSection) || sectionOptions[0];
   const greetingName = state.userName ?? "there";
