@@ -1,4 +1,4 @@
-import type { ModalView } from "@slack/types";
+import type { ModalView, KnownBlock } from "@slack/types";
 
 type TemplateModalPayload = {
   templateId: string;
@@ -57,3 +57,22 @@ export const buildEditTemplateModal = (template: TemplateModalPayload): ModalVie
     },
   ],
 });
+
+export const buildTemplateDmBlocks = (template: TemplateModalPayload): KnownBlock[] => [
+  {
+    type: "context",
+    elements: [
+      {
+        type: "mrkdwn",
+        text: `Sent from *${template.title}*`,
+      },
+    ],
+  },
+  {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: `\`\`\`\n${template.body}\n\`\`\``,
+    },
+  },
+];

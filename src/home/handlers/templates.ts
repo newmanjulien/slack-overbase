@@ -5,6 +5,7 @@ import { updatePreferences } from "../../data/preferences.js";
 import { getTemplateById, updateTemplateBody } from "../../data/templates.js";
 import {
   buildEditTemplateModal,
+  buildTemplateDmBlocks,
   buildViewTemplateModal,
 } from "../../features/templates/modals.js";
 import { logger } from "../../lib/logger.js";
@@ -80,20 +81,11 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
       try {
         await client.chat.postMessage({
           channel: dmChannelId,
-          username: "Template",
-          icon_emoji: ":memo:",
           text: templateText,
+          blocks: buildTemplateDmBlocks(template),
         });
       } catch (error) {
-        logger.error({ error }, "Template DM failed with custom name/icon");
-        try {
-          await client.chat.postMessage({
-            channel: dmChannelId,
-            text: templateText,
-          });
-        } catch (fallbackError) {
-          logger.error({ error: fallbackError }, "Template DM failed without override");
-        }
+        logger.error({ error }, "Template DM failed");
       }
 
       try {
