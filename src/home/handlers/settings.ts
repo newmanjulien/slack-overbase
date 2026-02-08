@@ -5,6 +5,7 @@ import { updatePreferences } from "../../data/preferences.js";
 import { logger } from "../../lib/logger.js";
 import type { PublishHome } from "../publish.js";
 import type { HomeActionArgs } from "./types.js";
+import { getHomeSectionFromMetadata, parseMetadata } from "./viewState.js";
 
 export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome) => {
   app.action(
@@ -17,7 +18,14 @@ export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome)
         if (!userId) return;
         const teamContext = getTeamContext({ body });
         await updateDatasources(userId, teamContext, { allowlist: selectedUsers });
-        await publishHome(client, userId, teamContext);
+        const metadata = parseMetadata(body.view?.private_metadata);
+        const homeSection = getHomeSectionFromMetadata(metadata);
+        await publishHome(
+          client,
+          userId,
+          teamContext,
+          homeSection ? { homeSection } : undefined,
+        );
       } catch (error) {
         logger.error({ error }, "allowlist_select failed");
       }
@@ -39,7 +47,14 @@ export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome)
           recommendPastQuestions: selectedValues.includes("past_questions"),
           recommendSimilarExecs: selectedValues.includes("similar_execs"),
         });
-        await publishHome(client, userId, teamContext);
+        const metadata = parseMetadata(body.view?.private_metadata);
+        const homeSection = getHomeSectionFromMetadata(metadata);
+        await publishHome(
+          client,
+          userId,
+          teamContext,
+          homeSection ? { homeSection } : undefined,
+        );
       } catch (error) {
         logger.error({ error }, "settings_recommendations failed");
       }

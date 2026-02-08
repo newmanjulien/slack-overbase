@@ -1,3 +1,5 @@
+import { normalizeHomeSection, type HomeSection } from "../home.js";
+
 export type ViewStateField = {
   value?: string;
   selected_option?: {
@@ -64,4 +66,12 @@ export const parseMetadata = (raw?: string): Record<string, unknown> => {
   } catch {
     return {};
   }
+};
+
+export const getHomeSectionFromMetadata = (
+  metadata: Record<string, unknown>,
+): HomeSection | undefined => {
+  const raw = metadata.homeSection;
+  if (typeof raw !== "string") return undefined;
+  return normalizeHomeSection(raw);
 };

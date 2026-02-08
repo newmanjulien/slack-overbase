@@ -1,9 +1,11 @@
 import type { ModalView } from "@slack/types";
+import type { HomeSection } from "../../home/home.js";
 
 export const buildEditTemplateModal = (payload: {
   templateId: string;
   title: string;
   body: string;
+  homeSection?: HomeSection;
 }): ModalView => {
   return {
     type: "modal",
@@ -11,7 +13,10 @@ export const buildEditTemplateModal = (payload: {
     title: { type: "plain_text", text: "Edit template" },
     submit: { type: "plain_text", text: "Save" },
     close: { type: "plain_text", text: "Cancel" },
-    private_metadata: JSON.stringify({ templateId: payload.templateId }),
+    private_metadata: JSON.stringify({
+      templateId: payload.templateId,
+      homeSection: payload.homeSection,
+    }),
     blocks: [
       {
         type: "section",

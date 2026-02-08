@@ -68,6 +68,7 @@ export const publishHome = async (
 
   const view: HomeView = {
     type: "home",
+    private_metadata: JSON.stringify({ homeSection }),
     blocks: buildHomeCompositionBlocks(homeState),
   };
 
