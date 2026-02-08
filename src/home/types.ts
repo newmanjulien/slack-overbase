@@ -15,7 +15,9 @@ export type HomeSectionDataMap = {
     welcomeImages: WelcomeImages;
   };
   templates: {
-    templates: Array<{ templateId: string; title: string; summary: string }>;
+    templates: Array<{ templateId: string; title: string; summary: string; category: string }>;
+    templateSection: string;
+    sectionOptions: Array<{ value: string; label: string }>;
   };
   recurring: {
     recurring: Array<{

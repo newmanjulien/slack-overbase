@@ -19,6 +19,7 @@ import type * as slack_installations from "../slack/installations.js";
 import type * as slack_preferences from "../slack/preferences.js";
 import type * as slack_recurring from "../slack/recurring.js";
 import type * as slack_templates from "../slack/templates.js";
+import type * as slack_templatesSeed from "../slack/templatesSeed.js";
 
 import type {
   ApiFromModules,
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   "slack/preferences": typeof slack_preferences;
   "slack/recurring": typeof slack_recurring;
   "slack/templates": typeof slack_templates;
+  "slack/templatesSeed": typeof slack_templatesSeed;
 }>;
 
 /**

@@ -7,21 +7,47 @@ export type Template = {
   title: string;
   summary: string;
   body: string;
-  audiences: string[];
+  category: string;
   updatedAt: number;
 };
 
-export const listTemplates = async (
+type TemplateRecord = {
+  templateId: string;
+  title: string;
+  summary: string;
+  body: string;
+  category: string;
+  updatedAt: number;
+};
+
+const mapTemplate = (template: TemplateRecord | null | undefined): Template | null => {
+  if (!template) return null;
+  return {
+    templateId: template.templateId,
+    title: template.title,
+    summary: template.summary,
+    body: template.body,
+    category: template.category,
+    updatedAt: template.updatedAt,
+  };
+};
+
+export const listTemplatesByCategory = async (
   userId: string,
   teamContext: TeamContext,
+  category: string,
 ): Promise<Template[]> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  const templates = await client.query(api.slack.templates.list, {
+  const templates = await client.mutation(api.slack.templates.getOrCreateUserTemplates, {
     userId,
     teamId: teamContext.teamId,
+    category,
   });
-  return Array.isArray(templates) ? templates : [];
+  if (!Array.isArray(templates)) return [];
+  return templates
+    .map((template) => mapTemplate(template))
+    .filter((template): template is Template => Boolean(template));
 };
 
 export const getTemplateById = async (
@@ -36,7 +62,7 @@ export const getTemplateById = async (
     teamId: teamContext.teamId,
     templateId,
   });
-  return template || null;
+  return mapTemplate(template);
 };
 
 export const updateTemplateBody = async (
@@ -44,13 +70,14 @@ export const updateTemplateBody = async (
   teamContext: TeamContext,
   templateId: string,
   body: string,
-) => {
+): Promise<Template | null> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation(api.slack.templates.updateBody, {
+  const updated = await client.mutation(api.slack.templates.updateBody, {
     userId,
     teamId: teamContext.teamId,
     templateId,
     body,
   });
+  return mapTemplate(updated);
 };
