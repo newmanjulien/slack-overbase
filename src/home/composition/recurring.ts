@@ -1,5 +1,5 @@
 import { listRecurringQuestions } from "../../data/recurring.js";
-import { buildRecurringBlocks } from "../views/recurring.js";
+import { buildHomeRecurringBlocks } from "../views/recurring.js";
 import type { HomeSectionSpec } from "../types.js";
 
 export const recurringSection: HomeSectionSpec<"recurring"> = {
@@ -14,5 +14,5 @@ export const recurringSection: HomeSectionSpec<"recurring"> = {
       })),
     };
   },
-  view: (state) => buildRecurringBlocks(state.recurring),
+  view: (state) => buildHomeRecurringBlocks(state.recurring),
 };
