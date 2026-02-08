@@ -33,7 +33,7 @@ export type RecurringDataSelection =
   | "data_prev_year";
 
 export type RecurringQuestion = {
-  id: Id<"recurringQuestions">;
+  id: Id<"recurring">;
   question: string;
   title: string;
   frequency: RecurringFrequency;
@@ -43,7 +43,7 @@ export type RecurringQuestion = {
 };
 
 const mapRecurring = (record: {
-  _id: Id<"recurringQuestions">;
+  _id: Id<"recurring">;
   question: string;
   title: string;
   frequency: RecurringFrequency;
@@ -76,7 +76,7 @@ export const listRecurringQuestions = async (
 export const getRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: Id<"recurringQuestions">,
+  id: Id<"recurring">,
 ): Promise<RecurringQuestion | null> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
@@ -118,7 +118,7 @@ export const createRecurringQuestion = async (
 export const updateRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: Id<"recurringQuestions">,
+  id: Id<"recurring">,
   payload: {
     question: string;
     title: string;
@@ -147,7 +147,7 @@ export const updateRecurringQuestion = async (
 export const deleteRecurringQuestion = async (
   userId: string,
   teamContext: TeamContext,
-  id: Id<"recurringQuestions">,
+  id: Id<"recurring">,
 ): Promise<{ deleted: boolean }> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();

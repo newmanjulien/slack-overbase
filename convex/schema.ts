@@ -9,7 +9,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamId", ["teamId"]),
 
-  userPreferences: defineTable({
+  preferences: defineTable({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.array(v.string()),
@@ -21,7 +21,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
-  userDatasources: defineTable({
+  datasources: defineTable({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.array(v.string()),
@@ -63,7 +63,7 @@ export default defineSchema({
     .index("byTeamUserTemplateId", ["teamId", "userId", "templateId"])
     .index("byTeamUserCategory", ["teamId", "userId", "category"]),
 
-  recurringQuestions: defineTable({
+  recurring: defineTable({
     userId: v.string(),
     teamId: v.string(),
     question: v.string(),
@@ -76,7 +76,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
-  canvasAnswers: defineTable({
+  canvas: defineTable({
     canvasId: v.string(),
     userId: v.string(),
     teamId: v.string(),
@@ -92,14 +92,14 @@ export default defineSchema({
   // retries on timeouts or slow responses, which means the same event ID can
   // arrive more than once. The `claimEvent` mutation checks this table before
   // doing any work, inserts a row on first sight, and skips repeats after that.
-  slackEventDedup: defineTable({
+  dedup: defineTable({
     teamId: v.string(),
     eventId: v.string(),
     userId: v.optional(v.string()),
     createdAt: v.number(),
   }).index("byTeamEventId", ["teamId", "eventId"]),
 
-  oneTimeCodes: defineTable({
+  codes: defineTable({
     teamId: v.string(),
     slackUserId: v.string(),
     code: v.string(),

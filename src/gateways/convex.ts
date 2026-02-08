@@ -40,7 +40,7 @@ export const convex = {
   recurring: {
     list: (args: { userId: string; teamId: string }) =>
       getClient().query(api.slack.recurring.list, args),
-    getById: (args: { userId: string; teamId: string; id: Id<"recurringQuestions"> }) =>
+    getById: (args: { userId: string; teamId: string; id: Id<"recurring"> }) =>
       getClient().query(api.slack.recurring.getById, args),
     create: (args: {
       userId: string;
@@ -55,7 +55,7 @@ export const convex = {
     update: (args: {
       userId: string;
       teamId: string;
-      id: Id<"recurringQuestions">;
+      id: Id<"recurring">;
       question?: string;
       title?: string;
       frequency?: string;
@@ -63,7 +63,7 @@ export const convex = {
       delivery?: string;
       dataSelection?: string;
     }) => getClient().mutation(api.slack.recurring.update, args),
-    remove: (args: { userId: string; teamId: string; id: Id<"recurringQuestions"> }) =>
+    remove: (args: { userId: string; teamId: string; id: Id<"recurring"> }) =>
       getClient().mutation(api.slack.recurring.remove, args),
   },
   templates: {

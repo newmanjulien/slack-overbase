@@ -177,7 +177,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
         const question = await getRecurringQuestion(
           body.user.id,
           teamContext,
-          questionId as Id<"recurringQuestions">,
+          questionId as Id<"recurring">,
         );
         if (!question) return;
         await openRecurringQuestionModal({
@@ -211,7 +211,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
         await deleteRecurringQuestion(
           body.user.id,
           teamContext,
-          questionId as Id<"recurringQuestions">,
+          questionId as Id<"recurring">,
         );
         await publishHome(client, body.user.id, teamContext, { homeSection: "recurring" });
       } catch (error) {
@@ -253,7 +253,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
         await deleteRecurringQuestion(
           body.user.id,
           teamContext,
-          metadata.questionId as Id<"recurringQuestions">,
+          metadata.questionId as Id<"recurring">,
         );
         await publishHome(client, body.user.id, teamContext, { homeSection: "recurring" });
       } catch (error) {
@@ -357,7 +357,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
       await updateRecurringQuestion(
         body.user.id,
         teamContext,
-        metadata.questionId as Id<"recurringQuestions">,
+        metadata.questionId as Id<"recurring">,
         payload,
       );
     } else {

@@ -5,7 +5,7 @@ export const list = query({
   args: { userId: v.string(), teamId: v.string() },
   handler: async (ctx, args) => {
     return ctx.db
-      .query("recurringQuestions")
+      .query("recurring")
       .withIndex("byTeamUser", (q) =>
         q.eq("teamId", args.teamId).eq("userId", args.userId),
       )
@@ -15,7 +15,7 @@ export const list = query({
 });
 
 export const getById = query({
-  args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
+  args: { userId: v.string(), teamId: v.string(), id: v.id("recurring") },
   handler: async (ctx, args) => {
     const record = await ctx.db.get(args.id);
     if (!record) return null;
@@ -66,7 +66,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
-    const id = await ctx.db.insert("recurringQuestions", {
+    const id = await ctx.db.insert("recurring", {
       userId: args.userId,
       teamId: args.teamId,
       question: args.question,
@@ -86,7 +86,7 @@ export const update = mutation({
   args: {
     userId: v.string(),
     teamId: v.string(),
-    id: v.id("recurringQuestions"),
+    id: v.id("recurring"),
     question: v.string(),
     title: v.string(),
     frequency: v.union(v.literal("weekly"), v.literal("monthly"), v.literal("quarterly")),
@@ -143,7 +143,7 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { userId: v.string(), teamId: v.string(), id: v.id("recurringQuestions") },
+  args: { userId: v.string(), teamId: v.string(), id: v.id("recurring") },
   handler: async (ctx, args) => {
     const existing = await ctx.db.get(args.id);
     if (!existing) {
