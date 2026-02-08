@@ -55,12 +55,13 @@ export default defineSchema({
     title: v.string(),
     summary: v.string(),
     body: v.string(),
-    audiences: v.array(v.string()),
+    category: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("byTeamUser", ["teamId", "userId"])
-    .index("byTeamUserTemplateId", ["teamId", "userId", "templateId"]),
+    .index("byTeamUserTemplateId", ["teamId", "userId", "templateId"])
+    .index("byTeamUserCategory", ["teamId", "userId", "category"]),
 
   recurringQuestions: defineTable({
     userId: v.string(),

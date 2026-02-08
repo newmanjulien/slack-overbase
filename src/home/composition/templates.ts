@@ -1,17 +1,18 @@
-import { listTemplates } from "../../data/templates.js";
+import { listTemplatesByCategory } from "../../data/templates.js";
+import { getDefaultTemplateSection, templateSectionOptions } from "../../features/templates/options.js";
 import { buildTemplatesBlocks } from "../views/templates.js";
 import type { HomeSectionSpec } from "../types.js";
 
 export const templatesSection: HomeSectionSpec<"templates"> = {
-  load: async ({ userId, teamContext }) => {
-    const templates = await listTemplates(userId, teamContext);
+  load: async ({ userId, teamContext, preferences }) => {
+    const templateSection = preferences.templateSection || getDefaultTemplateSection();
+    const templates = await listTemplatesByCategory(userId, teamContext, templateSection);
     return {
-      templates: templates.map((template) => ({
-        templateId: template.templateId,
-        title: template.title,
-        summary: template.summary,
-      })),
+      templateSection,
+      sectionOptions: templateSectionOptions,
+      templates,
     };
   },
-  view: (state) => buildTemplatesBlocks(state.templates),
+  view: (state) =>
+    buildTemplatesBlocks(state.templates, state.templateSection, state.sectionOptions),
 };
