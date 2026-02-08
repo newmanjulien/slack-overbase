@@ -1,21 +1,24 @@
-import type { App } from "@slack/bolt";
+import type { App, AllMiddlewareArgs, SlackEventMiddlewareArgs } from "@slack/bolt";
 import { logger } from "../../lib/logger.js";
 import { getTeamContext } from "../../lib/teamContext.js";
 import { claimSlackEvent } from "../../data/eventDedup.js";
 import { handleDirectMessage } from "../../features/messaging/service.js";
 import { getConversationMeta } from "../../data/conversations.js";
-import { getEventMeta, isDirectUserMessage } from "../../lib/slackGuards.js";
+import { getEventId, getEventTimeMs, isDirectUserMessage } from "../../gateways/slack.js";
 
 const MESSAGE_DEBOUNCE_MS = 3000;
 const MAX_RETRY_AGE_MS = 30000;
 
+type DirectMessageArgs = SlackEventMiddlewareArgs<"message"> & AllMiddlewareArgs;
+
 export const registerDirectMessageHandler = (app: App) => {
-  app.message(async ({ message, say, context, body }) => {
+  app.message(async ({ message, say, context, body }: DirectMessageArgs) => {
     if (!message || !isDirectUserMessage(message)) {
       return;
     }
 
-    const { eventId, eventTime } = getEventMeta(body, message.ts);
+    const eventId = getEventId(body, message);
+    const eventTimeMs = getEventTimeMs(body);
     let teamContext;
     try {
       teamContext = getTeamContext({ context, message });
@@ -24,8 +27,8 @@ export const registerDirectMessageHandler = (app: App) => {
       return;
     }
 
-    if (context?.retryNum && typeof eventTime === "number") {
-      const eventAgeMs = Date.now() - eventTime * 1000;
+    if (context?.retryNum && typeof eventTimeMs === "number") {
+      const eventAgeMs = Date.now() - eventTimeMs;
       if (eventAgeMs > MAX_RETRY_AGE_MS) {
         return;
       }

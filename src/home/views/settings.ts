@@ -1,4 +1,4 @@
-import type { KnownBlock, PlainTextOption } from "@slack/types";
+import type { Checkboxes, KnownBlock, PlainTextOption } from "@slack/types";
 import type { HomeSectionDataMap } from "../types.js";
 
 const pastQuestionsOption: PlainTextOption = {
@@ -27,7 +27,7 @@ const buildRecommendationsElement = (
     ...(recommendations.similarExecs ? [similarExecsOption] : []),
   ];
 
-  const element = {
+  const element: Checkboxes = {
     type: "checkboxes" as const,
     action_id: "settings_recommendations",
     options: [pastQuestionsOption, similarExecsOption],

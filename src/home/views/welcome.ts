@@ -1,6 +1,7 @@
 import type { KnownBlock } from "@slack/types";
 import type { GenericId as StorageId } from "convex/values";
 import type { HomeSectionDataMap } from "../types.js";
+import { toStorageId } from "../ids.js";
 
 export type WelcomeImages = {
   message?: string | null;
@@ -8,20 +9,20 @@ export type WelcomeImages = {
   datasources?: string | null;
 };
 
-export const WELCOME_IMAGE_IDS = {
+const WELCOME_IMAGE_ID_STRINGS = {
   message: "kg2b0w0rssjfhb8srtbw5vpr9980pmqs",
   templates: "kg23146r4hh01cse72ccs1skjx80qsrk",
   datasources: "kg27wz50agyn4ras5f5qcxcmws80q3ag",
 } as const satisfies Record<keyof WelcomeImages, string>;
 
-export const getWelcomeImageIds = (): Record<
-  keyof WelcomeImages,
-  StorageId<"_storage">
-> => ({
-  message: WELCOME_IMAGE_IDS.message as StorageId<"_storage">,
-  templates: WELCOME_IMAGE_IDS.templates as StorageId<"_storage">,
-  datasources: WELCOME_IMAGE_IDS.datasources as StorageId<"_storage">,
-});
+export const WELCOME_IMAGE_IDS = {
+  message: toStorageId(WELCOME_IMAGE_ID_STRINGS.message),
+  templates: toStorageId(WELCOME_IMAGE_ID_STRINGS.templates),
+  datasources: toStorageId(WELCOME_IMAGE_ID_STRINGS.datasources),
+} as const satisfies Record<keyof WelcomeImages, StorageId<"_storage">>;
+
+export const getWelcomeImageIds = (): Record<keyof WelcomeImages, StorageId<"_storage">> =>
+  WELCOME_IMAGE_IDS;
 
 export const buildWelcomeBlocks = (
   images: HomeSectionDataMap["welcome"]["welcomeImages"],
