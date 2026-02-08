@@ -73,12 +73,17 @@ export const createRecurringQuestion = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
+  const delivery = payload.delivery ?? undefined;
+  const dataSelection = payload.dataSelection ?? undefined;
   return client.mutation(api.slack.recurring.create, {
     userId,
     teamId: teamContext.teamId,
-    ...payload,
-    ...(payload.delivery === null ? { delivery: undefined } : {}),
-    ...(payload.dataSelection === null ? { dataSelection: undefined } : {}),
+    question: payload.question,
+    title: payload.title,
+    frequency: payload.frequency,
+    frequencyLabel: payload.frequencyLabel,
+    delivery,
+    dataSelection,
   });
 };
 
@@ -97,13 +102,18 @@ export const updateRecurringQuestion = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
+  const delivery = payload.delivery ?? undefined;
+  const dataSelection = payload.dataSelection ?? undefined;
   return client.mutation(api.slack.recurring.update, {
     userId,
     teamId: teamContext.teamId,
     id,
-    ...payload,
-    ...(payload.delivery === null ? { delivery: undefined } : {}),
-    ...(payload.dataSelection === null ? { dataSelection: undefined } : {}),
+    question: payload.question,
+    title: payload.title,
+    frequency: payload.frequency,
+    frequencyLabel: payload.frequencyLabel,
+    delivery,
+    dataSelection,
   });
 };
 

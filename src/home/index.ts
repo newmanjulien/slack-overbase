@@ -1,4 +1,19 @@
-import type { App } from "@slack/bolt";
+import type {
+  AllMiddlewareArgs,
+  App,
+  BlockAction,
+  BlockElementAction,
+  ButtonAction,
+  CheckboxesAction,
+  MultiUsersSelectAction,
+  OverflowAction,
+  SlackActionMiddlewareArgs,
+  SlackCommandMiddlewareArgs,
+  SlackEventMiddlewareArgs,
+  SlackViewMiddlewareArgs,
+  StaticSelectAction,
+  ViewSubmitAction,
+} from "@slack/bolt";
 import type { WebClient } from "@slack/web-api";
 import type { HomeView } from "@slack/types";
 import { getTeamContext } from "../lib/teamContext.js";
@@ -25,35 +40,11 @@ import {
 import { logger } from "../lib/logger.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
 
-type ActionValue = {
-  value?: string;
-  selected_option?: { value?: string; text?: { text?: string } };
-  selected_options?: Array<{ value?: string }>;
-  selected_users?: string[];
-};
-
-const getFirstAction = (body: unknown): ActionValue | null => {
-  if (!body || typeof body !== "object") return null;
-  const maybe = body as { actions?: unknown };
-  if (!Array.isArray(maybe.actions) || maybe.actions.length === 0) return null;
-  const first = maybe.actions[0];
-  if (!first || typeof first !== "object") return null;
-  return first as ActionValue;
-};
-
-const getBodyUserId = (body: unknown): string | undefined => {
-  if (!body || typeof body !== "object") return undefined;
-  const maybe = body as { user?: { id?: unknown } | null; user_id?: unknown };
-  if (maybe.user && typeof maybe.user.id === "string") return maybe.user.id;
-  if (typeof maybe.user_id === "string") return maybe.user_id;
-  return undefined;
-};
-
-const getBodyTriggerId = (body: unknown): string | undefined => {
-  if (!body || typeof body !== "object") return undefined;
-  const maybe = body as { trigger_id?: unknown };
-  return typeof maybe.trigger_id === "string" ? maybe.trigger_id : undefined;
-};
+type HomeEventArgs<T extends string> = SlackEventMiddlewareArgs<T> & AllMiddlewareArgs;
+type HomeActionArgs<T extends BlockElementAction> =
+  SlackActionMiddlewareArgs<BlockAction<T>> & AllMiddlewareArgs;
+type HomeViewArgs = SlackViewMiddlewareArgs<ViewSubmitAction> & AllMiddlewareArgs;
+type HomeCommandArgs = SlackCommandMiddlewareArgs & AllMiddlewareArgs;
 
 const toRecurringId = (value: string): Id<"recurringQuestions"> | null => {
   if (!value) return null;
@@ -127,7 +118,7 @@ const publishHome = async (
 };
 
 export const registerHomeHandlers = (app: App) => {
-  app.event("app_home_opened", async ({ event, client, context }) => {
+  app.event("app_home_opened", async ({ event, client, context }: HomeEventArgs<"app_home_opened">) => {
     try {
       if (event.tab && event.tab !== "home") return;
       if (context?.retryNum && context.retryNum > 0) return;
@@ -149,12 +140,13 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.action("home_section_select", async ({ ack, body, client }) => {
+  app.action(
+    "home_section_select",
+    async ({ ack, action, body, client }: HomeActionArgs<StaticSelectAction>) => {
     await ack();
     try {
-      const action = getFirstAction(body);
-      const selected = normalizeHomeSection(action?.selected_option?.value);
-      const userId = getBodyUserId(body);
+      const selected = normalizeHomeSection(action.selected_option?.value);
+      const userId = body.user.id;
       if (!userId) return;
       const teamContext = getTeamContext({ body });
       await publishHome(client, userId, teamContext, { homeSection: selected });
@@ -163,12 +155,13 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.action("allowlist_select", async ({ ack, body, client }) => {
+  app.action(
+    "allowlist_select",
+    async ({ ack, action, body, client }: HomeActionArgs<MultiUsersSelectAction>) => {
     await ack();
     try {
-      const action = getFirstAction(body);
-      const selectedUsers = action?.selected_users || [];
-      const userId = getBodyUserId(body);
+      const selectedUsers = action.selected_users || [];
+      const userId = body.user.id;
       if (!userId) return;
       const teamContext = getTeamContext({ body });
       await updateDatasources(userId, teamContext, { allowlist: selectedUsers });
@@ -178,12 +171,15 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.action("settings_recommendations", async ({ ack, body, client }) => {
+  app.action(
+    "settings_recommendations",
+    async ({ ack, action, body, client }: HomeActionArgs<CheckboxesAction>) => {
     await ack();
     try {
-      const action = getFirstAction(body);
-      const selectedValues = action?.selected_options?.map((option) => option.value) || [];
-      const userId = getBodyUserId(body);
+      const selectedValues = (action.selected_options || [])
+        .map((option) => option.value)
+        .filter((value): value is string => typeof value === "string");
+      const userId = body.user.id;
       if (!userId) return;
       const teamContext = getTeamContext({ body });
       await updatePreferences(userId, teamContext, {
@@ -196,13 +192,14 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.action("template_edit", async ({ ack, body, client }) => {
+  app.action(
+    "template_edit",
+    async ({ ack, action, body, client }: HomeActionArgs<ButtonAction>) => {
     await ack();
     try {
-      const action = getFirstAction(body);
-      const templateId = action?.value;
-      const userId = getBodyUserId(body);
-      const triggerId = getBodyTriggerId(body);
+      const templateId = action.value;
+      const userId = body.user.id;
+      const triggerId = body.trigger_id;
       if (!userId || !triggerId) return;
       const teamContext = getTeamContext({ body });
       if (!templateId) return;
@@ -221,62 +218,71 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.view("template_edit", async ({ ack, body, view, client }) => {
-    await ack();
-    try {
-      const teamContext = getTeamContext({ body });
-      const metadata = JSON.parse(view.private_metadata || "{}");
-      const templateId = metadata.templateId;
-      const newBody = view.state.values?.body?.value?.value || "";
-      if (!templateId) return;
-      await updateTemplateBody(body.user.id, teamContext, templateId, newBody);
-      await publishHome(client, body.user.id, teamContext);
-    } catch (error) {
-      logger.error({ error }, "template_edit view submit failed");
-    }
-  });
+  app.view(
+    { callback_id: "template_edit", type: "view_submission" },
+    async ({ ack, body, view, client }: HomeViewArgs) => {
+      await ack();
+      try {
+        const teamContext = getTeamContext({ body });
+        const metadata = JSON.parse(view.private_metadata || "{}");
+        const templateId = metadata.templateId;
+        const newBody = view.state.values?.body?.value?.value || "";
+        if (!templateId) return;
+        await updateTemplateBody(body.user.id, teamContext, templateId, newBody);
+        await publishHome(client, body.user.id, teamContext);
+      } catch (error) {
+        logger.error({ error }, "template_edit view submit failed");
+      }
+    },
+  );
 
-  app.command("/recurring", async ({ ack, body, client }) => {
+  app.command("/recurring", async ({ ack, body, client }: HomeCommandArgs) => {
     await ack();
     try {
       await client.views.open({
         trigger_id: body.trigger_id,
-        view: buildAddRecurringQuestionModal({ timeZone: body.user?.tz, source: "slash" }),
+        view: buildAddRecurringQuestionModal({ source: "slash" }),
       });
     } catch (error) {
       logger.error({ error }, "recurring command failed");
     }
   });
 
-  app.view("recurring_add", async ({ ack, body, view, client }) => {
-    await ack();
-    try {
-      const teamContext = getTeamContext({ body });
-      const question = view.state.values?.question?.value?.value || "";
-      const title = view.state.values?.title?.value?.value || "";
-      const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
-      const frequencyLabel =
-        view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
+  app.view(
+    { callback_id: "recurring_add", type: "view_submission" },
+    async ({ ack, body, view, client }: HomeViewArgs) => {
+      await ack();
+      try {
+        const teamContext = getTeamContext({ body });
+        const question = view.state.values?.question?.value?.value || "";
+        const title = view.state.values?.title?.value?.value || "";
+        const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
+        const frequencyLabel =
+          view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
 
       await createRecurringQuestion(body.user.id, teamContext, {
         question,
         title,
         frequency,
         frequencyLabel,
+        delivery: undefined,
+        dataSelection: undefined,
       });
-      await publishHome(client, body.user.id, teamContext);
-    } catch (error) {
-      logger.error({ error }, "recurring_add submit failed");
-    }
-  });
+        await publishHome(client, body.user.id, teamContext);
+      } catch (error) {
+        logger.error({ error }, "recurring_add submit failed");
+      }
+    },
+  );
 
-  app.action("recurring_actions", async ({ ack, body, client }) => {
+  app.action(
+    "recurring_actions",
+    async ({ ack, action, body, client }: HomeActionArgs<OverflowAction>) => {
     await ack();
     try {
-      const actionValue = getFirstAction(body);
-      const selected = actionValue?.selected_option?.value || "";
-      const userId = getBodyUserId(body);
-      const triggerId = getBodyTriggerId(body);
+      const selected = action.selected_option?.value || "";
+      const userId = body.user.id;
+      const triggerId = body.trigger_id;
       if (!userId) return;
       const [actionType, id] = selected.split(":");
       const teamContext = getTeamContext({ body });
@@ -309,28 +315,31 @@ export const registerHomeHandlers = (app: App) => {
     }
   });
 
-  app.view("recurring_edit", async ({ ack, body, view, client }) => {
-    await ack();
-    try {
-      const teamContext = getTeamContext({ body });
-      const metadata = JSON.parse(view.private_metadata || "{}");
-      const id = toRecurringId(metadata.id);
-      if (!id) return;
-      const question = view.state.values?.question?.value?.value || "";
-      const title = view.state.values?.title?.value?.value || "";
-      const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
-      const frequencyLabel =
-        view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
+  app.view(
+    { callback_id: "recurring_edit", type: "view_submission" },
+    async ({ ack, body, view, client }: HomeViewArgs) => {
+      await ack();
+      try {
+        const teamContext = getTeamContext({ body });
+        const metadata = JSON.parse(view.private_metadata || "{}");
+        const id = toRecurringId(metadata.id);
+        if (!id) return;
+        const question = view.state.values?.question?.value?.value || "";
+        const title = view.state.values?.title?.value?.value || "";
+        const frequency = view.state.values?.frequency?.value?.selected_option?.value || "weekly";
+        const frequencyLabel =
+          view.state.values?.frequency?.value?.selected_option?.text?.text || "Weekly";
 
-      await updateRecurringQuestion(body.user.id, teamContext, id, {
-        question,
-        title,
-        frequency,
-        frequencyLabel,
-      });
-      await publishHome(client, body.user.id, teamContext);
-    } catch (error) {
-      logger.error({ error }, "recurring_edit submit failed");
-    }
-  });
+        await updateRecurringQuestion(body.user.id, teamContext, id, {
+          question,
+          title,
+          frequency,
+          frequencyLabel,
+        });
+        await publishHome(client, body.user.id, teamContext);
+      } catch (error) {
+        logger.error({ error }, "recurring_edit submit failed");
+      }
+    },
+  );
 };
