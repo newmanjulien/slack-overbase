@@ -1,9 +1,11 @@
 import type { ModalView } from "@slack/types";
 import type { Id } from "../../../convex/_generated/dataModel.js";
+import type { HomeSection } from "../../home/home.js";
 
 export const buildAddRecurringQuestionModal = (payload: {
   timeZone?: string;
   source?: string;
+  homeSection?: HomeSection;
 }): ModalView => {
   return {
     type: "modal",
@@ -56,6 +58,7 @@ export const buildEditRecurringQuestionModal = (payload: {
   title: string;
   frequency: string;
   frequencyLabel: string;
+  homeSection?: HomeSection;
 }): ModalView => {
   return {
     type: "modal",
@@ -63,7 +66,7 @@ export const buildEditRecurringQuestionModal = (payload: {
     title: { type: "plain_text", text: "Edit recurring" },
     submit: { type: "plain_text", text: "Save" },
     close: { type: "plain_text", text: "Cancel" },
-    private_metadata: JSON.stringify({ id: payload.id }),
+    private_metadata: JSON.stringify({ id: payload.id, homeSection: payload.homeSection }),
     blocks: [
       {
         type: "input",

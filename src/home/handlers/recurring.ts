@@ -14,7 +14,13 @@ import { logger } from "../../lib/logger.js";
 import type { Id } from "../../../convex/_generated/dataModel.js";
 import type { PublishHome } from "../publish.js";
 import type { HomeActionArgs, HomeCommandArgs, HomeViewArgs } from "./types.js";
-import { getSelectedOptionLabel, getSelectedOptionValue, getTextValue, parseMetadata } from "./viewState.js";
+import {
+  getHomeSectionFromMetadata,
+  getSelectedOptionLabel,
+  getSelectedOptionValue,
+  getTextValue,
+  parseMetadata,
+} from "./viewState.js";
 import { toRecurringId } from "../ids.js";
 
 type RecurringAction = {
@@ -36,7 +42,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
     try {
       await client.views.open({
         trigger_id: body.trigger_id,
-        view: buildAddRecurringQuestionModal({ source: "slash" }),
+        view: buildAddRecurringQuestionModal({ source: "slash", homeSection: "recurring" }),
       });
     } catch (error) {
       logger.error({ error }, "recurring command failed");
@@ -64,6 +70,8 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
           "Weekly",
         );
 
+        const metadata = parseMetadata(view.private_metadata);
+        const homeSection = getHomeSectionFromMetadata(metadata);
         await createRecurringQuestion(body.user.id, teamContext, {
           question,
           title,
@@ -72,7 +80,12 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
           delivery: undefined,
           dataSelection: undefined,
         });
-        await publishHome(client, body.user.id, teamContext);
+        await publishHome(
+          client,
+          body.user.id,
+          teamContext,
+          homeSection ? { homeSection } : undefined,
+        );
       } catch (error) {
         logger.error({ error }, "recurring_add submit failed");
       }
@@ -93,7 +106,14 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
 
         if (parsed.action === "delete") {
           await deleteRecurringQuestion(userId, teamContext, parsed.id);
-          await publishHome(client, userId, teamContext);
+          const metadata = parseMetadata(body.view?.private_metadata);
+          const homeSection = getHomeSectionFromMetadata(metadata);
+          await publishHome(
+            client,
+            userId,
+            teamContext,
+            homeSection ? { homeSection } : undefined,
+          );
           return;
         }
 
@@ -101,6 +121,8 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
           if (!triggerId) return;
           const recurring = await getRecurringQuestion(userId, teamContext, parsed.id);
           if (!recurring) return;
+          const metadata = parseMetadata(body.view?.private_metadata);
+          const homeSection = getHomeSectionFromMetadata(metadata);
           await client.views.open({
             trigger_id: triggerId,
             view: buildEditRecurringQuestionModal({
@@ -109,6 +131,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
               title: recurring.title,
               frequency: recurring.frequency,
               frequencyLabel: recurring.frequencyLabel,
+              homeSection,
             }),
           });
         }
@@ -126,6 +149,7 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
         const teamContext = getTeamContext({ body });
         const metadata = parseMetadata(view.private_metadata);
         const id = toRecurringId(metadata.id);
+        const homeSection = getHomeSectionFromMetadata(metadata);
         if (!id) return;
         const question = getTextValue(view.state?.values, "question", "value");
         const title = getTextValue(view.state?.values, "title", "value");
@@ -148,7 +172,12 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
           frequency,
           frequencyLabel,
         });
-        await publishHome(client, body.user.id, teamContext);
+        await publishHome(
+          client,
+          body.user.id,
+          teamContext,
+          homeSection ? { homeSection } : undefined,
+        );
       } catch (error) {
         logger.error({ error }, "recurring_edit submit failed");
       }
