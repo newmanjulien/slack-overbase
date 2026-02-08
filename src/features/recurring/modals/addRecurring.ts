@@ -1,4 +1,4 @@
-import type { ModalView } from "@slack/types";
+import type { KnownBlock, ModalView } from "@slack/types";
 import {
   buildRecurringDataOptions,
   buildRecurringDeliveryOptions,
@@ -45,6 +45,61 @@ export const buildAddRecurringQuestionModal = ({
     userTimeZone,
   );
 
+  const blocks: KnownBlock[] = [
+    {
+      type: "input",
+      block_id: "recurring_question_text",
+      label: { type: "plain_text", text: "Question" },
+      element: {
+        type: "plain_text_input",
+        action_id: "recurring_question_input",
+        initial_value: questionText || "",
+        multiline: true,
+      },
+    },
+    {
+      type: "section",
+      block_id: "recurring_question_frequency",
+      text: { type: "mrkdwn", text: "*How often?*" },
+      accessory: {
+        type: "static_select",
+        action_id: "recurring_frequency_select",
+        options: frequencyOptions,
+        initial_option: initialFrequencyOption,
+      },
+    },
+    {
+      type: "section",
+      block_id: "recurring_question_delivery",
+      text: { type: "mrkdwn", text: "*When should we deliver?*" },
+      accessory: {
+        type: "static_select",
+        action_id: "recurring_delivery_select",
+        options: deliveryOptions,
+        initial_option: initialDeliveryOption,
+      },
+    },
+    ...(firstDeliveryText
+      ? [
+          {
+            type: "section",
+            text: { type: "mrkdwn", text: `First answer: *${firstDeliveryText}*` },
+          } as KnownBlock,
+        ]
+      : []),
+    {
+      type: "section",
+      block_id: "recurring_question_data",
+      text: { type: "mrkdwn", text: "*What data should we use?*" },
+      accessory: {
+        type: "static_select",
+        action_id: "recurring_data_select",
+        options: dataOptions,
+        initial_option: initialDataOption,
+      },
+    },
+  ];
+
   return {
     type: "modal",
     callback_id: "recurring_question_modal",
@@ -52,59 +107,6 @@ export const buildAddRecurringQuestionModal = ({
     title: { type: "plain_text", text: "New recurring question" },
     submit: { type: "plain_text", text: "Create" },
     close: { type: "plain_text", text: "Cancel" },
-    blocks: [
-      {
-        type: "input",
-        block_id: "recurring_question_text",
-        label: { type: "plain_text", text: "Question" },
-        element: {
-          type: "plain_text_input",
-          action_id: "recurring_question_input",
-          initial_value: questionText || "",
-          multiline: true,
-        },
-      },
-      {
-        type: "section",
-        block_id: "recurring_question_frequency",
-        text: { type: "mrkdwn", text: "*How often?*" },
-        accessory: {
-          type: "static_select",
-          action_id: "recurring_frequency_select",
-          options: frequencyOptions,
-          initial_option: initialFrequencyOption,
-        },
-      },
-      {
-        type: "section",
-        block_id: "recurring_question_delivery",
-        text: { type: "mrkdwn", text: "*When should we deliver?*" },
-        accessory: {
-          type: "static_select",
-          action_id: "recurring_delivery_select",
-          options: deliveryOptions,
-          initial_option: initialDeliveryOption,
-        },
-      },
-      ...(firstDeliveryText
-        ? [
-            {
-              type: "section",
-              text: { type: "mrkdwn", text: `First answer: *${firstDeliveryText}*` },
-            },
-          ]
-        : []),
-      {
-        type: "section",
-        block_id: "recurring_question_data",
-        text: { type: "mrkdwn", text: "*What data should we use?*" },
-        accessory: {
-          type: "static_select",
-          action_id: "recurring_data_select",
-          options: dataOptions,
-          initial_option: initialDataOption,
-        },
-      },
-    ],
+    blocks,
   };
 };

@@ -32,6 +32,45 @@ export type RecurringDataSelection =
   | "data_prev_two_quarters"
   | "data_prev_year";
 
+const RECURRING_FREQUENCIES: RecurringFrequency[] = ["weekly", "monthly", "quarterly"];
+const RECURRING_DELIVERIES: RecurringDelivery[] = [
+  "weekly_su",
+  "weekly_mo",
+  "weekly_tu",
+  "weekly_we",
+  "weekly_th",
+  "weekly_fr",
+  "weekly_sa",
+  "monthly_first_day",
+  "monthly_first_monday",
+  "monthly_second_monday",
+  "monthly_third_monday",
+  "monthly_fourth_monday",
+  "monthly_last_day",
+  "quarterly_first_day",
+  "quarterly_first_monday",
+  "quarterly_last_monday",
+  "quarterly_last_day",
+];
+const RECURRING_DATA_SELECTIONS: RecurringDataSelection[] = [
+  "data_prev_week",
+  "data_prev_month",
+  "data_prev_two_months",
+  "data_prev_quarter",
+  "data_prev_two_quarters",
+  "data_prev_year",
+];
+
+const isRecurringFrequency = (value: unknown): value is RecurringFrequency =>
+  typeof value === "string" && RECURRING_FREQUENCIES.includes(value as RecurringFrequency);
+
+const isRecurringDelivery = (value: unknown): value is RecurringDelivery =>
+  typeof value === "string" && RECURRING_DELIVERIES.includes(value as RecurringDelivery);
+
+const isRecurringDataSelection = (value: unknown): value is RecurringDataSelection =>
+  typeof value === "string" &&
+  RECURRING_DATA_SELECTIONS.includes(value as RecurringDataSelection);
+
 export type RecurringQuestion = {
   id: Id<"recurring">;
   question: string;
@@ -46,18 +85,20 @@ const mapRecurring = (record: {
   _id: Id<"recurring">;
   question: string;
   title: string;
-  frequency: RecurringFrequency;
+  frequency: string;
   frequencyLabel: string;
-  delivery: RecurringDelivery | null;
-  dataSelection: RecurringDataSelection | null;
+  delivery: string | null;
+  dataSelection: string | null;
 }): RecurringQuestion => ({
   id: record._id,
   question: record.question,
   title: record.title,
-  frequency: record.frequency,
+  frequency: isRecurringFrequency(record.frequency) ? record.frequency : "weekly",
   frequencyLabel: record.frequencyLabel,
-  delivery: record.delivery ?? null,
-  dataSelection: record.dataSelection ?? null,
+  delivery: isRecurringDelivery(record.delivery) ? record.delivery : null,
+  dataSelection: isRecurringDataSelection(record.dataSelection)
+    ? record.dataSelection
+    : null,
 });
 
 export const listRecurringQuestions = async (

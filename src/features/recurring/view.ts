@@ -115,7 +115,7 @@ export const buildRecurringBlocks = (
         {
           type: "section",
           text: { type: "mrkdwn", text: "No recurring questions yet" },
-        },
+        } as KnownBlock,
       ]),
 ];
 

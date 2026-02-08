@@ -268,19 +268,22 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
       await ack();
       const metadata = parseRecurringMetadata(body.view);
       const values = body.view?.state?.values || {};
-      const selectedFrequency =
-        (body.actions?.[0] as any)?.selected_option?.value ||
-        getRecurringModalValues(values).selectedFrequency;
-      await client.views.update({
-        view_id: body.view?.id,
-        hash: body.view?.hash,
-        view: buildRecurringModalView({
-          metadata,
-          values,
-          selectedFrequency,
-          timeZone: (body.user as { tz?: string } | undefined)?.tz,
-        }),
-      });
+    const selectedFrequency =
+      (body.actions?.[0] as any)?.selected_option?.value ||
+      getRecurringModalValues(values).selectedFrequency;
+    const viewId = body.view?.id;
+    const viewHash = body.view?.hash;
+    if (!viewId || !viewHash) return;
+    await client.views.update({
+      view_id: viewId,
+      hash: viewHash,
+      view: buildRecurringModalView({
+        metadata,
+        values,
+        selectedFrequency,
+        timeZone: (body.user as { tz?: string } | undefined)?.tz,
+      }),
+    });
     },
   );
 
@@ -290,19 +293,22 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
       await ack();
       const metadata = parseRecurringMetadata(body.view);
       const values = body.view?.state?.values || {};
-      const selectedDelivery =
-        (body.actions?.[0] as any)?.selected_option?.value ||
-        getRecurringModalValues(values).selectedDelivery;
-      await client.views.update({
-        view_id: body.view?.id,
-        hash: body.view?.hash,
-        view: buildRecurringModalView({
-          metadata,
-          values,
-          selectedDelivery,
-          timeZone: (body.user as { tz?: string } | undefined)?.tz,
-        }),
-      });
+    const selectedDelivery =
+      (body.actions?.[0] as any)?.selected_option?.value ||
+      getRecurringModalValues(values).selectedDelivery;
+    const viewId = body.view?.id;
+    const viewHash = body.view?.hash;
+    if (!viewId || !viewHash) return;
+    await client.views.update({
+      view_id: viewId,
+      hash: viewHash,
+      view: buildRecurringModalView({
+        metadata,
+        values,
+        selectedDelivery,
+        timeZone: (body.user as { tz?: string } | undefined)?.tz,
+      }),
+    });
     },
   );
 
