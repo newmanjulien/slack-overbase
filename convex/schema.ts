@@ -21,6 +21,14 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
+  userDatasources: defineTable({
+    userId: v.string(),
+    teamId: v.string(),
+    allowlist: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byTeamUser", ["teamId", "userId"]),
+
   conversationMessages: defineTable({
     userId: v.string(),
     teamId: v.string(),

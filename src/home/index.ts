@@ -3,6 +3,7 @@ import type { WebClient } from "@slack/web-api";
 import type { HomeView } from "@slack/types";
 import { getTeamContext } from "../lib/teamContext.js";
 import { getOrCreatePreferences, updatePreferences } from "../data/preferences.js";
+import { updateDatasources } from "../data/datasources.js";
 import { getTemplateById, updateTemplateBody } from "../data/templates.js";
 import {
   getRecurringQuestion,
@@ -170,7 +171,7 @@ export const registerHomeHandlers = (app: App) => {
       const userId = getBodyUserId(body);
       if (!userId) return;
       const teamContext = getTeamContext({ body });
-      await updatePreferences(userId, teamContext, { allowlist: selectedUsers });
+      await updateDatasources(userId, teamContext, { allowlist: selectedUsers });
       await publishHome(client, userId, teamContext);
     } catch (error) {
       logger.error({ error }, "allowlist_select failed");

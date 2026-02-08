@@ -13,6 +13,7 @@ import type * as portal_assets from "../portal/assets.js";
 import type * as portal_auth from "../portal/auth.js";
 import type * as slack_canvas from "../slack/canvas.js";
 import type * as slack_conversations from "../slack/conversations.js";
+import type * as slack_datasources from "../slack/datasources.js";
 import type * as slack_events from "../slack/events.js";
 import type * as slack_installations from "../slack/installations.js";
 import type * as slack_preferences from "../slack/preferences.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   "portal/auth": typeof portal_auth;
   "slack/canvas": typeof slack_canvas;
   "slack/conversations": typeof slack_conversations;
+  "slack/datasources": typeof slack_datasources;
   "slack/events": typeof slack_events;
   "slack/installations": typeof slack_installations;
   "slack/preferences": typeof slack_preferences;
