@@ -15,6 +15,17 @@ A TypeScript Slack app built on Bolt with Convex as the backing store. The app a
 - Build uses esbuild globs (`src/index.ts` plus `src/**/*.ts`) to emit a full `dist/` tree; keep the quoted glob so nested files are included.
 - Use `npm run build:verify` to sanity-check required build outputs (`dist/index.js` and `dist/features/`).
 
+## Data layer conventions
+
+- Convex is the source of truth for allowed values. Use `v.union` for enums and `v.null()` where the UI can clear a field.
+- `src/data/*` should expose stable DTOs (no `undefined` in public shapes). Normalize optional fields to `null` on read.
+- Map Convex records once inside the data layer; keep UI code unaware of Convex shapes.
+- Use explicit union types for user-selectable options (cadence, delivery, categories, etc.). Do not accept free-form strings unless that is the product requirement.
+- Be consistent about return shapes:
+  - If a mutation returns a record, always map and return the DTO.
+  - If a mutation is fire-and-forget, return `void` or the raw response consistently within that module.
+- Only expose Convex `Id<...>` types to the UI when the UI genuinely needs them (Home sections do).
+
 ## To do
 
 - Add persistent state store
