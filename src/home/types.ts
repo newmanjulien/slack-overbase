@@ -21,7 +21,7 @@ export type HomeSectionDataMap = {
   };
   recurring: {
     recurring: Array<{
-      id: Id<"recurringQuestions">;
+      id: Id<"recurring">;
       title: string;
       question: string;
       frequencyLabel: string;

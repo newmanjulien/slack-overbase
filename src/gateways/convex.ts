@@ -1,6 +1,11 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api.js";
 import type { Id } from "../../convex/_generated/dataModel.js";
+import type {
+  RecurringDataSelection,
+  RecurringDelivery,
+  RecurringFrequency,
+} from "../data/recurring.js";
 import { getConfig } from "../lib/config.js";
 
 let cached: ConvexHttpClient | null = null;
@@ -40,34 +45,34 @@ export const convex = {
   recurring: {
     list: (args: { userId: string; teamId: string }) =>
       getClient().query(api.slack.recurring.list, args),
-    getById: (args: { userId: string; teamId: string; id: Id<"recurringQuestions"> }) =>
+    getById: (args: { userId: string; teamId: string; id: Id<"recurring"> }) =>
       getClient().query(api.slack.recurring.getById, args),
     create: (args: {
       userId: string;
       teamId: string;
       question: string;
       title: string;
-      frequency: string;
+      frequency: RecurringFrequency;
       frequencyLabel: string;
-      delivery?: string;
-      dataSelection?: string;
+      delivery: RecurringDelivery | null;
+      dataSelection: RecurringDataSelection | null;
     }) => getClient().mutation(api.slack.recurring.create, args),
     update: (args: {
       userId: string;
       teamId: string;
-      id: Id<"recurringQuestions">;
-      question?: string;
-      title?: string;
-      frequency?: string;
-      frequencyLabel?: string;
-      delivery?: string;
-      dataSelection?: string;
+      id: Id<"recurring">;
+      question: string;
+      title: string;
+      frequency: RecurringFrequency;
+      frequencyLabel: string;
+      delivery: RecurringDelivery | null;
+      dataSelection: RecurringDataSelection | null;
     }) => getClient().mutation(api.slack.recurring.update, args),
-    remove: (args: { userId: string; teamId: string; id: Id<"recurringQuestions"> }) =>
+    remove: (args: { userId: string; teamId: string; id: Id<"recurring"> }) =>
       getClient().mutation(api.slack.recurring.remove, args),
   },
   templates: {
-    list: (args: { userId: string; teamId: string }) =>
+    list: (args: { userId: string; teamId: string; category: string }) =>
       getClient().query(api.slack.templates.list, args),
     getById: (args: { userId: string; teamId: string; templateId: string }) =>
       getClient().query(api.slack.templates.getById, args),

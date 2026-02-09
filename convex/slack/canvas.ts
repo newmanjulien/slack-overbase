@@ -14,7 +14,7 @@ export const storeAnswer = mutation({
     entities: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    const id = await ctx.db.insert("canvasAnswers", {
+    const id = await ctx.db.insert("canvas", {
       userId: args.userId,
       teamId: args.teamId,
       canvasId: args.canvasId,

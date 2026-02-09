@@ -4,7 +4,7 @@ import { v } from "convex/values";
 // Slack uses at-least-once delivery and will retry on timeouts, network errors,
 // or slow 2xx responses. That means the same event ID can show up again
 // (sometimes minutes later or in parallel). We record (teamId, eventId) in
-// `slackEventDedup` (indexed by `byTeamEventId`) so the first delivery runs and
+// `dedup` (indexed by `byTeamEventId`) so the first delivery runs and
 // later deliveries get skipped. This is the only reliable, server-side way to
 // avoid duplicate side effects across retries or restarts. `claimEvent`
 // implements that gate: it checks for an existing record, inserts one if none
@@ -18,7 +18,7 @@ export const claimEvent = mutation({
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("slackEventDedup")
+      .query("dedup")
       .withIndex("byTeamEventId", (q) =>
         q.eq("teamId", args.teamId).eq("eventId", args.eventId),
       )
@@ -28,7 +28,7 @@ export const claimEvent = mutation({
       return { claimed: false };
     }
 
-    await ctx.db.insert("slackEventDedup", {
+    await ctx.db.insert("dedup", {
       teamId: args.teamId,
       eventId: args.eventId,
       userId: args.userId,

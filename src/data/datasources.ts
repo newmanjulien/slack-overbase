@@ -27,10 +27,10 @@ export const updateDatasources = async (
   updates: Partial<{
     allowlist: string[];
   }>,
-) => {
+): Promise<void> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation(api.slack.datasources.update, {
+  await client.mutation(api.slack.datasources.update, {
     userId,
     teamId: teamContext.teamId,
     ...updates,

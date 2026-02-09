@@ -14,7 +14,7 @@ export const toStorageId = (value: string): StorageId<"_storage"> => {
   return value as StorageId<"_storage">;
 };
 
-export const toRecurringId = (value: unknown): Id<"recurringQuestions"> | null => {
+export const toRecurringId = (value: unknown): Id<"recurring"> | null => {
   if (!isConvexId(value)) return null;
-  return value as Id<"recurringQuestions">;
+  return value as Id<"recurring">;
 };

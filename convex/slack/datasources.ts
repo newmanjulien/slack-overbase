@@ -5,7 +5,7 @@ export const getOrCreate = mutation({
   args: { userId: v.string(), teamId: v.string() },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("userDatasources")
+      .query("datasources")
       .withIndex("byTeamUser", (q) =>
         q.eq("teamId", args.teamId).eq("userId", args.userId),
       )
@@ -14,7 +14,7 @@ export const getOrCreate = mutation({
     if (existing) return existing;
 
     const now = Date.now();
-    const id = await ctx.db.insert("userDatasources", {
+    const id = await ctx.db.insert("datasources", {
       userId: args.userId,
       teamId: args.teamId,
       allowlist: [],
@@ -34,7 +34,7 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("userDatasources")
+      .query("datasources")
       .withIndex("byTeamUser", (q) =>
         q.eq("teamId", args.teamId).eq("userId", args.userId),
       )
@@ -42,7 +42,7 @@ export const update = mutation({
     const now = Date.now();
 
     if (!existing) {
-      await ctx.db.insert("userDatasources", {
+      await ctx.db.insert("datasources", {
         userId: args.userId,
         teamId: args.teamId,
         allowlist: args.allowlist ?? [],

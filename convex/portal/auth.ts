@@ -20,7 +20,7 @@ export const issueOneTimeCode = mutation({
   handler: async (ctx, args) => {
     const code = generateCode();
     const now = Date.now();
-    await ctx.db.insert("oneTimeCodes", {
+    await ctx.db.insert("codes", {
       code,
       teamId: args.teamId,
       slackUserId: args.slackUserId,
@@ -39,7 +39,7 @@ export const cleanupExpiredOneTimeCodes = internalMutation({
     let deleted = 0;
     while (true) {
       const expired = await ctx.db
-        .query("oneTimeCodes")
+        .query("codes")
         .withIndex("byExpiresAt", (q) => q.lt("expiresAt", now))
         .take(100);
       if (expired.length === 0) {

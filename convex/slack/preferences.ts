@@ -5,7 +5,7 @@ export const getOrCreate = mutation({
   args: { userId: v.string(), teamId: v.string() },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("userPreferences")
+      .query("preferences")
       .withIndex("byTeamUser", (q) =>
         q.eq("teamId", args.teamId).eq("userId", args.userId),
       )
@@ -14,11 +14,11 @@ export const getOrCreate = mutation({
     if (existing) return existing;
 
     const now = Date.now();
-    const id = await ctx.db.insert("userPreferences", {
+    const id = await ctx.db.insert("preferences", {
       userId: args.userId,
       teamId: args.teamId,
       allowlist: [],
-      templateSection: undefined,
+      templateSection: null,
       recommendPastQuestions: true,
       recommendSimilarExecs: true,
       onboardingSent: false,
@@ -35,29 +35,29 @@ export const update = mutation({
     userId: v.string(),
     teamId: v.string(),
     allowlist: v.optional(v.array(v.string())),
-    templateSection: v.optional(v.string()),
+    templateSection: v.optional(v.union(v.string(), v.null())),
     recommendPastQuestions: v.optional(v.boolean()),
     recommendSimilarExecs: v.optional(v.boolean()),
     onboardingSent: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
-      .query("userPreferences")
+      .query("preferences")
       .withIndex("byTeamUser", (q) =>
         q.eq("teamId", args.teamId).eq("userId", args.userId),
       )
       .first();
     const now = Date.now();
     if (!existing) {
-      await ctx.db.insert("userPreferences", {
+      await ctx.db.insert("preferences", {
         userId: args.userId,
-        teamId: args.teamId,
-        allowlist: args.allowlist ?? [],
-        templateSection: args.templateSection,
-        recommendPastQuestions: args.recommendPastQuestions ?? true,
-        recommendSimilarExecs: args.recommendSimilarExecs ?? true,
-        onboardingSent: args.onboardingSent ?? false,
-        createdAt: now,
+      teamId: args.teamId,
+      allowlist: args.allowlist ?? [],
+      templateSection: typeof args.templateSection === "undefined" ? null : args.templateSection,
+      recommendPastQuestions: args.recommendPastQuestions ?? true,
+      recommendSimilarExecs: args.recommendSimilarExecs ?? true,
+      onboardingSent: args.onboardingSent ?? false,
+      createdAt: now,
         updatedAt: now,
       });
       return { ok: true };

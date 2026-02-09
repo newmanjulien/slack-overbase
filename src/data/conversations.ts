@@ -8,11 +8,13 @@ export type ConversationMessage = {
 };
 
 const MAX_HISTORY = 24;
+const isConversationRole = (value: unknown): value is ConversationMessage["role"] =>
+  value === "user" || value === "assistant" || value === "system";
 
 export const listRecentMessages = async (
   userId: string,
   teamContext: TeamContext,
-) => {
+): Promise<ConversationMessage[]> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
   const messages = await client.query(api.slack.conversations.listRecentMessages, {
@@ -20,19 +22,23 @@ export const listRecentMessages = async (
     teamId: teamContext.teamId,
     limit: MAX_HISTORY,
   });
-  return Array.isArray(messages)
-    ? messages.map((message) => ({
-        role: message.role as ConversationMessage["role"],
-        content: message.content as string,
-      }))
-    : [];
+  if (!Array.isArray(messages)) return [];
+  return messages
+    .map((message) => ({
+      role: isConversationRole(message.role) ? message.role : null,
+      content: typeof message.content === "string" ? message.content : "",
+    }))
+    .filter(
+      (message): message is ConversationMessage =>
+        Boolean(message.role) && message.content.length > 0,
+    );
 };
 
 export const addMessage = async (
   userId: string,
   teamContext: TeamContext,
   message: ConversationMessage & { source?: string; hasBot24?: boolean },
-) => {
+): Promise<void> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
   await client.mutation(api.slack.conversations.addMessage, {
@@ -65,7 +71,7 @@ export const updateConversationSummary = async (
   userId: string,
   teamContext: TeamContext,
   summary: string,
-) => {
+): Promise<void> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
   await client.mutation(api.slack.conversations.updateSummary, {
@@ -79,7 +85,7 @@ export const updateLastMessageAt = async (
   userId: string,
   teamContext: TeamContext,
   timestamp: number,
-) => {
+): Promise<void> => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
   await client.mutation(api.slack.conversations.updateLastMessageAt, {
