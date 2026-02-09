@@ -1,5 +1,6 @@
 import { internalMutation, mutation, query } from "../_generated/server.js";
 import { v } from "convex/values";
+import { getValidSession } from "./session.js";
 
 const CODE_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,25 +90,7 @@ export const getSession = query({
     token: v.string(),
   },
   handler: async (ctx, { token }) => {
-    const now = Date.now();
-    const session = await ctx.db
-      .query("sessions")
-      .withIndex("byToken", (q) => q.eq("token", token))
-      .unique();
-
-    if (!session) {
-      return null;
-    }
-
-    if (session.revokedAt || session.expiresAt <= now) {
-      return null;
-    }
-
-    return {
-      teamId: session.teamId,
-      slackUserId: session.slackUserId,
-      expiresAt: session.expiresAt,
-    };
+    return getValidSession(ctx.db, token);
   },
 });
 

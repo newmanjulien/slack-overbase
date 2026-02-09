@@ -113,7 +113,7 @@ export default defineSchema({
 
   people: defineTable({
     teamId: v.string(),
-    slackUserId: v.string(),
+    slackUserId: v.optional(v.string()),
     name: v.string(),
     avatarUrl: v.optional(v.string()),
     status: v.optional(v.union(v.literal("ready"), v.literal("waiting"))),

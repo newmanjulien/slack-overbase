@@ -11,6 +11,10 @@
 import type * as crons from "../crons.js";
 import type * as portal_assets from "../portal/assets.js";
 import type * as portal_auth from "../portal/auth.js";
+import type * as portal_billing from "../portal/billing.js";
+import type * as portal_connectors from "../portal/connectors.js";
+import type * as portal_people from "../portal/people.js";
+import type * as portal_session from "../portal/session.js";
 import type * as slack_canvas from "../slack/canvas.js";
 import type * as slack_conversations from "../slack/conversations.js";
 import type * as slack_datasources from "../slack/datasources.js";
@@ -31,6 +35,10 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   "portal/assets": typeof portal_assets;
   "portal/auth": typeof portal_auth;
+  "portal/billing": typeof portal_billing;
+  "portal/connectors": typeof portal_connectors;
+  "portal/people": typeof portal_people;
+  "portal/session": typeof portal_session;
   "slack/canvas": typeof slack_canvas;
   "slack/conversations": typeof slack_conversations;
   "slack/datasources": typeof slack_datasources;

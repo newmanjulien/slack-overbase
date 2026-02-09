@@ -1,5 +1,6 @@
 import { mutation, query } from "../_generated/server.js";
 import { v } from "convex/values";
+import { requireSession } from "./session.js";
 
 const seedData = [
   {
@@ -64,12 +65,13 @@ export const seedTiers = mutation({
 
 export const getBilling = query({
   args: {
-    teamId: v.string(),
+    token: v.string(),
   },
-  handler: async (ctx, { teamId }) => {
+  handler: async (ctx, { token }) => {
+    const session = await requireSession(ctx.db, token);
     const billing = await ctx.db
       .query("billing")
-      .withIndex("byTeamId", (q) => q.eq("teamId", teamId))
+      .withIndex("byTeamId", (q) => q.eq("teamId", session.teamId))
       .first();
 
     if (!billing) {
@@ -82,14 +84,14 @@ export const getBilling = query({
 
 export const setTier = mutation({
   args: {
-    teamId: v.string(),
+    token: v.string(),
     tierId: v.string(),
-    updatedBySlackUserId: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { token, tierId }) => {
+    const session = await requireSession(ctx.db, token);
     const tier = await ctx.db
       .query("tiers")
-      .withIndex("byTierId", (q) => q.eq("tierId", args.tierId))
+      .withIndex("byTierId", (q) => q.eq("tierId", tierId))
       .unique();
 
     if (!tier) {
@@ -99,22 +101,22 @@ export const setTier = mutation({
     const now = Date.now();
     const existing = await ctx.db
       .query("billing")
-      .withIndex("byTeamId", (q) => q.eq("teamId", args.teamId))
+      .withIndex("byTeamId", (q) => q.eq("teamId", session.teamId))
       .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
-        tierId: args.tierId,
-        updatedBySlackUserId: args.updatedBySlackUserId,
+        tierId,
+        updatedBySlackUserId: session.slackUserId,
         updatedAt: now,
       });
       return existing._id;
     }
 
     return ctx.db.insert("billing", {
-      teamId: args.teamId,
-      tierId: args.tierId,
-      updatedBySlackUserId: args.updatedBySlackUserId,
+      teamId: session.teamId,
+      tierId,
+      updatedBySlackUserId: session.slackUserId,
       updatedAt: now,
     });
   },
