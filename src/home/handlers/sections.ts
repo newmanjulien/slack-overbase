@@ -9,9 +9,7 @@ export const registerHomeSectionHandlers = (app: App, publishHome: PublishHome) 
   app.action(
     "home_section_select",
     async ({ ack, action, body, client }: HomeActionArgs<StaticSelectAction>) => {
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "home_section_select received");
       await ack();
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "home_section_select acked");
       try {
         const selected = normalizeHomeSection(action.selected_option?.value);
         const userId = body.user.id;

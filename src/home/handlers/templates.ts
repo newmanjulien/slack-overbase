@@ -16,9 +16,7 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
   app.action(
     "view_template",
     async ({ ack, action, body, client }: HomeActionArgs<ButtonAction>) => {
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "view_template received");
       await ack();
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "view_template acked");
       try {
         const templateId = action.value;
         const userId = body.user.id;
@@ -41,9 +39,7 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
   app.action(
     "edit_view_template",
     async ({ ack, body, action, client }: HomeActionArgs<ButtonAction>) => {
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "edit_view_template received");
       await ack();
-      logger.info({ actionId: action.action_id, bodyType: body.type }, "edit_view_template acked");
       try {
         const templateId = action.value;
         if (!templateId) return;
@@ -65,9 +61,7 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
   );
 
   app.view("view_template_modal", async ({ ack, body, client }: HomeViewArgs) => {
-    logger.info({ viewCallbackId: body.view?.callback_id, bodyType: body.type }, "view_template_modal received");
     await ack();
-    logger.info({ viewCallbackId: body.view?.callback_id, bodyType: body.type }, "view_template_modal acked");
     const runTemplateFlow = async () => {
       const templateId = body.view?.private_metadata || "";
       const teamContext = getTeamContext({ body });
@@ -124,14 +118,9 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
   app.view(
     "edit_view_template_modal",
     async ({ ack, body, view, client }: HomeViewArgs) => {
-      logger.info({ viewCallbackId: view.callback_id, bodyType: body.type }, "edit_view_template_modal received");
       const templateId = view.private_metadata || "";
       if (!templateId) {
         await ack();
-        logger.info(
-          { viewCallbackId: view.callback_id, bodyType: body.type },
-          "edit_view_template_modal acked (missing templateId)",
-        );
         return;
       }
 
@@ -140,10 +129,6 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
         const template = await getTemplateById(body.user.id, teamContext, templateId);
         if (!template) {
           await ack();
-          logger.info(
-            { viewCallbackId: view.callback_id, bodyType: body.type },
-            "edit_view_template_modal acked (missing template)",
-          );
           return;
         }
         const editedText =
@@ -152,10 +137,6 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
           (await updateTemplateBody(body.user.id, teamContext, templateId, editedText)) ||
           template;
         await ack({ response_action: "update", view: buildViewTemplateModal(updated) });
-        logger.info(
-          { viewCallbackId: view.callback_id, bodyType: body.type },
-          "edit_view_template_modal acked (update)",
-        );
       } catch (error) {
         logger.error({ error }, "edit_view_template_modal view submit failed");
         await ack();
