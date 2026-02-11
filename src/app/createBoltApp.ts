@@ -1,4 +1,5 @@
 import pkg from "@slack/bolt";
+import type { AckFn } from "@slack/bolt";
 const { App, ExpressReceiver } = pkg;
 import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
@@ -28,14 +29,14 @@ export const createBoltApp = () => {
 
   const app = new App({ receiver });
 
-  app.use(async (args, next) => {
+  app.use(async (args) => {
     if (typeof args.ack === "function") {
       let acked = false;
-      const originalAck = args.ack.bind(args);
-      args.ack = async (...ackArgs) => {
+      const originalAck = args.ack.bind(args) as AckFn<unknown>;
+      args.ack = (async (response?: unknown) => {
         acked = true;
-        return originalAck(...ackArgs);
-      };
+        return originalAck(response);
+      }) as typeof args.ack;
 
       const body: any = (args as any).body;
       const eventType = body?.event?.type;
@@ -59,7 +60,9 @@ export const createBoltApp = () => {
       }, 3000);
     }
 
-    await next();
+    if (typeof args.next === "function") {
+      await args.next();
+    }
   });
 
   registerHandlers(app);

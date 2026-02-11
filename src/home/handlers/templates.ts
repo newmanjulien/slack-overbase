@@ -115,7 +115,9 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
     });
   });
 
-  app.view("edit_view_template_modal", async ({ ack, body, view }: HomeViewArgs) => {
+  app.view(
+    "edit_view_template_modal",
+    async ({ ack, body, view, client }: HomeViewArgs) => {
     await ack();
 
     const runUpdate = async () => {
@@ -146,7 +148,8 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
     void runUpdate().catch((error) => {
       logger.error({ error }, "edit_view_template_modal view submit failed");
     });
-  });
+    },
+  );
 
   app.action(
     "template_section",
