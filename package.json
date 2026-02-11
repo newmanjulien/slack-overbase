@@ -8,7 +8,6 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "esbuild src/index.ts \"src/**/*.ts\" --platform=node --format=esm --outdir=dist --outbase=src --sourcemap",
-    "build:portal-contract": "npm --prefix shared/portal run build",
     "build:verify": "node -e \"const fs=require('fs');const path=require('path');const must=['dist/index.js','dist/features'];const missing=must.filter(p=>!fs.existsSync(path.resolve(p)));if(missing.length){console.error('Missing build outputs:', missing.join(', '));process.exit(1);}console.log('Build outputs present:', must.join(', '));\"",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "start": "node dist/index.js",

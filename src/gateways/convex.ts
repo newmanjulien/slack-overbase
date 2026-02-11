@@ -121,12 +121,12 @@ export const convex = {
       getClient().mutation(api.slack.installations.remove, args),
   },
   portal: {
-    issueCode: (args: {
+    issueOneTimeCode: (args: {
       teamId: string;
       slackUserId: string;
       teamName?: string;
       name?: string;
       avatarUrl?: string;
-    }) => getClient().mutation(api.portal.auth.issueCode, args),
+    }) => getClient().mutation(api.portal.auth.issueOneTimeCode, args),
   },
 };
