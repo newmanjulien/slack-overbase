@@ -313,73 +313,80 @@ export const registerHomeRecurringHandlers = (app: App, publishHome: PublishHome
   );
 
   app.view("recurring_question_modal", async ({ ack, body, view, client }: HomeViewArgs) => {
-    const metadata = parseRecurringMetadata(view);
-    const teamContext = getTeamContext({ body });
-    const values = view.state?.values || {};
-    const { questionText, titleText } = getRecurringModalValues(values);
-    const frequencyOption =
-      values.recurring_question_frequency?.recurring_frequency_select?.selected_option;
-    const deliveryOption =
-      values.recurring_question_delivery?.recurring_delivery_select?.selected_option;
-    const dataOption = values.recurring_question_data?.recurring_data_select?.selected_option;
-    const frequency =
-      (frequencyOption?.value && isRecurringFrequency(frequencyOption.value)
-        ? frequencyOption.value
-        : "weekly");
-    const delivery =
-      deliveryOption?.value && isRecurringDelivery(deliveryOption.value)
-        ? deliveryOption.value
-        : null;
-    const dataSelection =
-      dataOption?.value && isRecurringDataSelection(dataOption.value)
-        ? dataOption.value
-        : null;
-    const frequencyLabel = `${frequencyOption?.text?.text || "Weekly"} · ${deliveryOption?.text?.text || "Mondays"}`;
-    const manualTitle = titleText.trim().slice(0, 60);
-    let generatedTitle: string | null = null;
+    await ack();
 
-    if (!manualTitle) {
-      try {
-        generatedTitle = await generateRecurringTitle({
-          questionText,
-          frequencyLabel,
-          dataSelection,
-        });
-      } catch (error) {
-        logger.error({ error }, "Failed to generate recurring title");
+    const runSubmit = async () => {
+      const metadata = parseRecurringMetadata(view);
+      const teamContext = getTeamContext({ body });
+      const values = view.state?.values || {};
+      const { questionText, titleText } = getRecurringModalValues(values);
+      const frequencyOption =
+        values.recurring_question_frequency?.recurring_frequency_select?.selected_option;
+      const deliveryOption =
+        values.recurring_question_delivery?.recurring_delivery_select?.selected_option;
+      const dataOption = values.recurring_question_data?.recurring_data_select?.selected_option;
+      const frequency =
+        (frequencyOption?.value && isRecurringFrequency(frequencyOption.value)
+          ? frequencyOption.value
+          : "weekly");
+      const delivery =
+        deliveryOption?.value && isRecurringDelivery(deliveryOption.value)
+          ? deliveryOption.value
+          : null;
+      const dataSelection =
+        dataOption?.value && isRecurringDataSelection(dataOption.value)
+          ? dataOption.value
+          : null;
+      const frequencyLabel = `${frequencyOption?.text?.text || "Weekly"} · ${deliveryOption?.text?.text || "Mondays"}`;
+      const manualTitle = titleText.trim().slice(0, 60);
+      let generatedTitle: string | null = null;
+
+      if (!manualTitle) {
+        try {
+          generatedTitle = await generateRecurringTitle({
+            questionText,
+            frequencyLabel,
+            dataSelection,
+          });
+        } catch (error) {
+          logger.error({ error }, "Failed to generate recurring title");
+        }
       }
-    }
 
-    const payload = {
-      question: questionText,
-      frequency,
-      frequencyLabel,
-      delivery,
-      dataSelection,
-      title: manualTitle || generatedTitle || questionText || "Recurring Question",
+      const payload = {
+        question: questionText,
+        frequency,
+        frequencyLabel,
+        delivery,
+        dataSelection,
+        title: manualTitle || generatedTitle || questionText || "Recurring Question",
+      };
+
+      if (metadata.questionId) {
+        await updateRecurringQuestion(
+          body.user.id,
+          teamContext,
+          metadata.questionId as Id<"recurring">,
+          payload,
+        );
+      } else {
+        await createRecurringQuestion(body.user.id, teamContext, payload);
+      }
+
+      if (metadata.source === "slash" && body.view?.id) {
+        await client.views.update({
+          view_id: body.view.id,
+          hash: body.view.hash,
+          view: buildRecurringSuccessModal(),
+        });
+        return;
+      }
+
+      await publishHome(client, body.user.id, teamContext, { homeSection: "recurring" });
     };
 
-    if (metadata.questionId) {
-      await updateRecurringQuestion(
-        body.user.id,
-        teamContext,
-        metadata.questionId as Id<"recurring">,
-        payload,
-      );
-    } else {
-      await createRecurringQuestion(body.user.id, teamContext, payload);
-    }
-
-    if (metadata.source === "slash") {
-      await ack({ response_action: "update", view: buildRecurringSuccessModal() });
-      return;
-    }
-
-    await ack();
-    try {
-      await publishHome(client, body.user.id, teamContext, { homeSection: "recurring" });
-    } catch (error) {
-      logger.error({ error }, "Failed to publish home after recurring submit");
-    }
+    void runSubmit().catch((error) => {
+      logger.error({ error }, "Failed to submit recurring question");
+    });
   });
 };
