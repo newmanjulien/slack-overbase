@@ -68,6 +68,14 @@ export const getPortalLinksForPaths = async (payload: {
   try {
     const config = getConfig();
     const baseUrl = normalizeBaseUrl(config.PORTAL_BASE_URL);
+    logger.info(
+      {
+        portalBaseUrl: config.PORTAL_BASE_URL,
+        normalizedPortalBaseUrl: baseUrl,
+        requestedPaths: payload.paths,
+      },
+      "Building portal links",
+    );
     const results = await Promise.all(
       payload.paths.map(async (path) => {
         const code = await issueCode({
@@ -77,9 +85,23 @@ export const getPortalLinksForPaths = async (payload: {
           name: payload.userName,
           avatarUrl: payload.userAvatar,
         });
+        logger.info(
+          {
+            portalPath: path,
+            hasCode: Boolean(code),
+          },
+          "Portal link code issued",
+        );
         const url = code
           ? buildPortalUrl(baseUrl, code, PORTAL_PATHS[path])
           : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`;
+        logger.info(
+          {
+            portalPath: path,
+            portalUrl: url,
+          },
+          "Portal link resolved",
+        );
         return [PORTAL_URL_KEYS[path], url] as const;
       }),
     );
