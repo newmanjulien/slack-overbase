@@ -1,5 +1,4 @@
 import pkg from "@slack/bolt";
-import type { AckFn } from "@slack/bolt";
 const { App, ExpressReceiver } = pkg;
 import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
@@ -30,36 +29,6 @@ export const createBoltApp = () => {
   const app = new App({ receiver });
 
   app.use(async (args) => {
-    if (typeof args.ack === "function") {
-      let acked = false;
-      const originalAck = args.ack.bind(args) as AckFn<unknown>;
-      args.ack = (async (response?: unknown) => {
-        acked = true;
-        return originalAck(response);
-      }) as typeof args.ack;
-
-      const body: any = (args as any).body;
-      const eventType = body?.event?.type;
-      const actionId = body?.actions?.[0]?.action_id;
-      const viewCallbackId = body?.view?.callback_id;
-      const command = body?.command;
-
-      setTimeout(() => {
-        if (!acked) {
-          logger.error(
-            {
-              eventType,
-              actionId,
-              viewCallbackId,
-              command,
-              bodyType: body?.type,
-            },
-            "Ack not called within 3 seconds",
-          );
-        }
-      }, 3000);
-    }
-
     if (typeof args.next === "function") {
       await args.next();
     }

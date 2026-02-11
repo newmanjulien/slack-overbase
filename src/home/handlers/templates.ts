@@ -125,37 +125,41 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
     "edit_view_template_modal",
     async ({ ack, body, view, client }: HomeViewArgs) => {
       logger.info({ viewCallbackId: view.callback_id, bodyType: body.type }, "edit_view_template_modal received");
-      await ack();
-      logger.info({ viewCallbackId: view.callback_id, bodyType: body.type }, "edit_view_template_modal acked");
-
-      const runUpdate = async () => {
       const templateId = view.private_metadata || "";
       if (!templateId) {
+        await ack();
+        logger.info(
+          { viewCallbackId: view.callback_id, bodyType: body.type },
+          "edit_view_template_modal acked (missing templateId)",
+        );
         return;
       }
-      const teamContext = getTeamContext({ body });
-      const template = await getTemplateById(body.user.id, teamContext, templateId);
-      if (!template) {
-        return;
-      }
-      const editedText =
-        view.state?.values?.template_body?.template_body_input?.value || template.body;
-      const updated =
-        (await updateTemplateBody(body.user.id, teamContext, templateId, editedText)) ||
-        template;
-      if (!body.view?.id) {
-        return;
-      }
-      await client.views.update({
-        view_id: body.view.id,
-        hash: body.view.hash,
-        view: buildViewTemplateModal(updated),
-      });
-    };
 
-    void runUpdate().catch((error) => {
-      logger.error({ error }, "edit_view_template_modal view submit failed");
-    });
+      try {
+        const teamContext = getTeamContext({ body });
+        const template = await getTemplateById(body.user.id, teamContext, templateId);
+        if (!template) {
+          await ack();
+          logger.info(
+            { viewCallbackId: view.callback_id, bodyType: body.type },
+            "edit_view_template_modal acked (missing template)",
+          );
+          return;
+        }
+        const editedText =
+          view.state?.values?.template_body?.template_body_input?.value || template.body;
+        const updated =
+          (await updateTemplateBody(body.user.id, teamContext, templateId, editedText)) ||
+          template;
+        await ack({ response_action: "update", view: buildViewTemplateModal(updated) });
+        logger.info(
+          { viewCallbackId: view.callback_id, bodyType: body.type },
+          "edit_view_template_modal acked (update)",
+        );
+      } catch (error) {
+        logger.error({ error }, "edit_view_template_modal view submit failed");
+        await ack();
+      }
     },
   );
 
