@@ -4,6 +4,7 @@ import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
 import { registerHandlers } from "../handlers/index.js";
 import { registerCanvasAdminRoutes } from "../features/canvas/adminRoutes.js";
+import { registerPortalLinkRoutes } from "../features/portal/portalLinkRoutes.js";
 import { installationStore } from "./installationStore.js";
 
 export const createBoltApp = () => {
@@ -25,6 +26,7 @@ export const createBoltApp = () => {
   });
 
   registerCanvasAdminRoutes({ receiver, installationStore, logger });
+  registerPortalLinkRoutes({ receiver, logger });
 
   const app = new App({ receiver });
 

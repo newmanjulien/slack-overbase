@@ -1,7 +1,6 @@
-import { getConvexClient } from "../../lib/convexClient.js";
-import { api } from "../../../convex/_generated/api.js";
 import { getConfig } from "../../lib/config.js";
 import { logger } from "../../lib/logger.js";
+import crypto from "crypto";
 
 const DEFAULT_PORTAL_BASE_URL = "https://admin.overbase.app";
 const PORTAL_PATHS = {
@@ -29,22 +28,15 @@ const normalizeBaseUrl = (rawBaseUrl?: string) => {
   return `https://${baseUrl.replace(/^\/+/, "").replace(/\/$/, "")}`;
 };
 
-const buildPortalUrl = (baseUrl: string, code: string, nextPath: string) => {
-  const encodedCode = encodeURIComponent(code);
-  const encodedNext = encodeURIComponent(nextPath);
-  return `${baseUrl}/auth/consume?code=${encodedCode}&next=${encodedNext}`;
-};
+const buildSignature = (secret: string, payload: string) =>
+  crypto.createHmac("sha256", secret).update(payload).digest("hex");
 
-const issueCode = async (payload: {
-  teamId: string;
-  slackUserId: string;
-  teamName?: string;
-  name?: string;
-  avatarUrl?: string;
-}) => {
-  const client = getConvexClient();
-  const result = await client.mutation(api.portal.auth.issueCode, payload);
-  return result?.code as string | undefined;
+const buildPortalLinkUrl = (
+  appBaseUrl: string,
+  payload: { teamId: string; userId: string; next: string; sig: string },
+) => {
+  const params = new URLSearchParams(payload);
+  return `${appBaseUrl}/portal-link?${params.toString()}`;
 };
 
 export const getPortalLinks = async (payload: {
@@ -67,19 +59,17 @@ export const getPortalLinksForPaths = async (payload: {
 }): Promise<PortalLinks> => {
   try {
     const config = getConfig();
-    const baseUrl = normalizeBaseUrl(config.PORTAL_BASE_URL);
+    const appBaseUrl = normalizeBaseUrl(config.APP_BASE_URL);
     const results = await Promise.all(
       payload.paths.map(async (path) => {
-        const code = await issueCode({
+        const payloadString = `${payload.teamId}:${payload.userId}:${PORTAL_PATHS[path]}`;
+        const sig = buildSignature(config.PORTAL_LINK_SECRET, payloadString);
+        const url = buildPortalLinkUrl(appBaseUrl, {
           teamId: payload.teamId,
-          slackUserId: payload.userId,
-          teamName: payload.teamName,
-          name: payload.userName,
-          avatarUrl: payload.userAvatar,
+          userId: payload.userId,
+          next: PORTAL_PATHS[path],
+          sig,
         });
-        const url = code
-          ? buildPortalUrl(baseUrl, code, PORTAL_PATHS[path])
-          : `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`;
         return [PORTAL_URL_KEYS[path], url] as const;
       }),
     );

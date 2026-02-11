@@ -4,9 +4,13 @@ This project is a Slack app. It interfaces with another seperate project which i
 
 # Don't screw up the portal
 
-# IMPORTANT
-
 Be careful when making changes to the database schema. It's possible to break the portal. Always think about the portal when making changes to the database schema. When in doubt, ask me or check the portal code: /Users/juliennewman/Documents/slack-portal
+
+# Don't screw up the portal links
+
+Portal links must go through `/portal-link` in this Slack app
+Do not put `code=` links directly in Slack views
+Every click should mint a new code in Convex and then redirect to the portal
 
 # Elegant, robust and type safe
 
