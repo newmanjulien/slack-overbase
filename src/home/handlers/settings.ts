@@ -64,4 +64,12 @@ export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome)
   app.action("manage_payments", async ({ ack }: HomeActionArgs<ButtonAction>) => {
     await ack();
   });
+
+  app.action("manage_connectors", async ({ ack }: HomeActionArgs<ButtonAction>) => {
+    await ack();
+  });
+
+  app.action("manage_people_portal", async ({ ack }: HomeActionArgs<ButtonAction>) => {
+    await ack();
+  });
 };

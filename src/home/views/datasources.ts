@@ -44,6 +44,7 @@ export const buildDatasourcesBlocks = (
       elements: [
         {
           type: "button",
+          action_id: "manage_connectors",
           text: {
             type: "plain_text",
             text: "Manage connectors",
@@ -97,6 +98,7 @@ export const buildDatasourcesBlocks = (
       },
       accessory: {
         type: "button",
+        action_id: "manage_people_portal",
         text: {
           type: "plain_text",
           text: "Add people not in Slack",
