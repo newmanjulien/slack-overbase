@@ -43,7 +43,7 @@ const issueCode = async (payload: {
   avatarUrl?: string;
 }) => {
   const client = getConvexClient();
-  const result = await client.mutation(api.portal.auth.issueCode, payload);
+  const result = await client.mutation(api.portal.auth.issueOneTimeCode, payload);
   return result?.code as string | undefined;
 };
 
