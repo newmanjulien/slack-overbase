@@ -1,6 +1,8 @@
-# Slack Overbase
+# Slack app with a seperate portal
 
-A TypeScript Slack app built on Bolt with Convex as the backing store. The app answers DMs with an LLM, provides an App Home UI (templates, recurring questions, datasources, settings), supports admin canvas routes, and generates portal links.
+A TypeScript Slack app built on Bolt with Convex as the backing store. The app answers DMs with an LLM, provides an App Home UI (templates, recurring questions, datasources, settings), supports admin canvas routes, and generates portal links
+
+There's a portal for users. It's a seperate Next.js app that uses the same Convex backend. All the Convex code for both projects is in this project in the `convex/` directory
 
 ## Local setup
 

@@ -1,4 +1,4 @@
-import type { App, CheckboxesAction, MultiUsersSelectAction } from "@slack/bolt";
+import type { App, ButtonAction, CheckboxesAction, MultiUsersSelectAction } from "@slack/bolt";
 import { getTeamContext } from "../../lib/teamContext.js";
 import { updateDatasources } from "../../data/datasources.js";
 import { updatePreferences } from "../../data/preferences.js";
@@ -61,7 +61,7 @@ export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome)
     },
   );
 
-  app.action("manage_payments", async ({ ack }: HomeActionArgs<CheckboxesAction>) => {
+  app.action("manage_payments", async ({ ack }: HomeActionArgs<ButtonAction>) => {
     await ack();
   });
 };

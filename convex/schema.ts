@@ -110,4 +110,54 @@ export default defineSchema({
     .index("byCode", ["code"])
     .index("byTeamUser", ["teamId", "slackUserId"])
     .index("byExpiresAt", ["expiresAt"]),
+
+  sessions: defineTable({
+    token: v.string(),
+    teamId: v.string(),
+    slackUserId: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("byToken", ["token"])
+    .index("byTeamUser", ["teamId", "slackUserId"])
+    .index("byExpiresAt", ["expiresAt"]),
+
+  people: defineTable({
+    teamId: v.string(),
+    name: v.string(),
+    slackUserId: v.string(),
+    avatarUrl: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("ready"), v.literal("waiting"))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byTeamId", ["teamId"]),
+
+  connectors: defineTable({
+    teamId: v.string(),
+    connectorId: v.string(),
+    title: v.string(),
+    logo: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("inactive")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("byTeamId", ["teamId"])
+    .index("byTeamConnectorId", ["teamId", "connectorId"]),
+
+  tiers: defineTable({
+    tierId: v.string(),
+    name: v.string(),
+    priceLabel: v.string(),
+    description: v.string(),
+    features: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byTierId", ["tierId"]),
+
+  billing: defineTable({
+    teamId: v.string(),
+    tierId: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byTeamId", ["teamId"]),
 });

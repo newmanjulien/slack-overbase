@@ -4,9 +4,15 @@ import { internal } from "./_generated/api.js";
 const crons = cronJobs();
 
 crons.interval(
-  "cleanup expired one-time codes",
+  "cleanup expired codes",
   { hours: 24 },
-  internal.portal.auth.cleanupExpiredOneTimeCodes,
+  internal.portal.auth.cleanupExpiredCodes,
+);
+
+crons.interval(
+  "cleanup expired sessions",
+  { hours: 24 },
+  internal.portal.auth.cleanupExpiredSessions,
 );
 
 export default crons;
