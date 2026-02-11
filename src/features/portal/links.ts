@@ -85,7 +85,13 @@ export const getPortalLinksForPaths = async (payload: {
     );
     return Object.fromEntries(results) as PortalLinks;
   } catch (error) {
-    logger.error({ error }, "Failed to build portal links");
+    logger.error(
+      {
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack : undefined,
+      },
+      "Failed to build portal links",
+    );
     const fallbackEntries = payload.paths.map((path) => [
       PORTAL_URL_KEYS[path],
       `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`,

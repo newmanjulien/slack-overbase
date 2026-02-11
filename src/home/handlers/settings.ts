@@ -60,4 +60,8 @@ export const registerHomeSettingsHandlers = (app: App, publishHome: PublishHome)
       }
     },
   );
+
+  app.action("manage_payments", async ({ ack }: HomeActionArgs<CheckboxesAction>) => {
+    await ack();
+  });
 };

@@ -62,6 +62,7 @@ export const buildSettingsBlocks = (
         {
           type: "button",
           text: { type: "plain_text", text: "Manage payments" },
+          action_id: "manage_payments",
           url: portalLinks.paymentsUrl || "https://example.com/payments",
         },
       ],
