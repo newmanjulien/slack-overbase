@@ -99,6 +99,59 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("byTeamEventId", ["teamId", "eventId"]),
 
+  sessions: defineTable({
+    teamId: v.string(),
+    slackUserId: v.string(),
+    token: v.string(),
+    issuedAt: v.number(),
+    expiresAt: v.number(),
+    revokedAt: v.optional(v.number()),
+  })
+    .index("byToken", ["token"])
+    .index("byTeamUser", ["teamId", "slackUserId"])
+    .index("byExpiresAt", ["expiresAt"]),
+
+  people: defineTable({
+    teamId: v.string(),
+    slackUserId: v.optional(v.string()),
+    name: v.string(),
+    avatarUrl: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("ready"), v.literal("waiting"))),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("byTeamId", ["teamId"])
+    .index("byTeamSlackUser", ["teamId", "slackUserId"]),
+
+  connectors: defineTable({
+    teamId: v.string(),
+    connectorId: v.string(),
+    title: v.string(),
+    logo: v.optional(v.string()),
+    status: v.union(v.literal("active"), v.literal("inactive")),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("byTeamId", ["teamId"])
+    .index("byTeamConnector", ["teamId", "connectorId"]),
+
+  tiers: defineTable({
+    tierId: v.string(),
+    name: v.string(),
+    priceLabel: v.string(),
+    description: v.string(),
+    features: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("byTierId", ["tierId"]),
+
+  billing: defineTable({
+    teamId: v.string(),
+    tierId: v.string(),
+    updatedBySlackUserId: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index("byTeamId", ["teamId"]),
+
   codes: defineTable({
     teamId: v.string(),
     slackUserId: v.string(),
