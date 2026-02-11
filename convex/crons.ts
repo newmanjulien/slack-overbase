@@ -15,4 +15,10 @@ crons.interval(
   internal.portal.auth.cleanupExpiredSessions,
 );
 
+crons.interval(
+  "cleanup old dedup",
+  { hours: 168 },
+  internal.slack.dedup.cleanupOldDedup,
+);
+
 export default crons;

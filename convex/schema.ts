@@ -97,7 +97,9 @@ export default defineSchema({
     eventId: v.string(),
     userId: v.optional(v.string()),
     createdAt: v.number(),
-  }).index("byTeamEventId", ["teamId", "eventId"]),
+  })
+    .index("byTeamEventId", ["teamId", "eventId"])
+    .index("byCreatedAt", ["createdAt"]),
 
   codes: defineTable({
     teamId: v.string(),

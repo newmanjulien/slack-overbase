@@ -16,6 +16,9 @@ There's a portal for users. It's a seperate Next.js app that uses the same Conve
 - `npm run build` compiles only `src` so `tsc` does not type-check `convex/` (Convex has its own toolchain/types).
 - Build uses esbuild globs (`src/index.ts` plus `src/**/*.ts`) to emit a full `dist/` tree; keep the quoted glob so nested files are included.
 - Use `npm run build:verify` to sanity-check required build outputs (`dist/index.js` and `dist/features/`).
+- Portal links are routed through `/portal-link` so every click gets a fresh code.
+- `APP_BASE_URL` is the public URL of this Slack app (ngrok in dev, Render in prod).
+- `PORTAL_LINK_SECRET` signs portal-link requests and must be set in every environment.
 
 ## Data layer conventions
 
