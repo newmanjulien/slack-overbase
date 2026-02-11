@@ -116,16 +116,16 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
   });
 
   app.view("edit_view_template_modal", async ({ ack, body, view }: HomeViewArgs) => {
-    try {
+    await ack();
+
+    const runUpdate = async () => {
       const templateId = view.private_metadata || "";
       if (!templateId) {
-        await ack();
         return;
       }
       const teamContext = getTeamContext({ body });
       const template = await getTemplateById(body.user.id, teamContext, templateId);
       if (!template) {
-        await ack();
         return;
       }
       const editedText =
@@ -133,14 +133,19 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
       const updated =
         (await updateTemplateBody(body.user.id, teamContext, templateId, editedText)) ||
         template;
-      await ack({
-        response_action: "update",
+      if (!body.view?.id) {
+        return;
+      }
+      await client.views.update({
+        view_id: body.view.id,
+        hash: body.view.hash,
         view: buildViewTemplateModal(updated),
       });
-    } catch (error) {
+    };
+
+    void runUpdate().catch((error) => {
       logger.error({ error }, "edit_view_template_modal view submit failed");
-      await ack();
-    }
+    });
   });
 
   app.action(

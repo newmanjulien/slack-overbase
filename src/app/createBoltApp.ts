@@ -27,6 +27,41 @@ export const createBoltApp = () => {
   registerCanvasAdminRoutes({ receiver, installationStore, logger });
 
   const app = new App({ receiver });
+
+  app.use(async (args, next) => {
+    if (typeof args.ack === "function") {
+      let acked = false;
+      const originalAck = args.ack.bind(args);
+      args.ack = async (...ackArgs) => {
+        acked = true;
+        return originalAck(...ackArgs);
+      };
+
+      const body: any = (args as any).body;
+      const eventType = body?.event?.type;
+      const actionId = body?.actions?.[0]?.action_id;
+      const viewCallbackId = body?.view?.callback_id;
+      const command = body?.command;
+
+      setTimeout(() => {
+        if (!acked) {
+          logger.error(
+            {
+              eventType,
+              actionId,
+              viewCallbackId,
+              command,
+              bodyType: body?.type,
+            },
+            "Ack not called within 3 seconds",
+          );
+        }
+      }, 3000);
+    }
+
+    await next();
+  });
+
   registerHandlers(app);
 
   receiver.app.get("/health", (_req, res) => {
