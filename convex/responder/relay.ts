@@ -29,19 +29,21 @@ export const enqueueInbound = mutation({
     rateLimitMax: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    if (args.lockKey && args.lockTtlMs) {
+    const lockKey = args.lockKey;
+    const lockTtlMs = args.lockTtlMs;
+    if (lockKey && lockTtlMs) {
       const existing = await ctx.db
         .query("relay_dispatch_locks")
-        .withIndex("byKey", (q) => q.eq("key", args.lockKey))
+        .withIndex("byKey", (q) => q.eq("key", lockKey))
         .first();
       const now = nowMs();
       if (existing && existing.expiresAt > now) {
         return { ok: false, rejected: "locked", expiresAt: existing.expiresAt };
       }
-      const expiresAt = now + args.lockTtlMs;
+      const expiresAt = now + lockTtlMs;
       if (!existing) {
         await ctx.db.insert("relay_dispatch_locks", {
-          key: args.lockKey,
+          key: lockKey,
           expiresAt,
           createdAt: now,
         });
@@ -50,37 +52,40 @@ export const enqueueInbound = mutation({
       }
     }
 
-    if (args.rateLimitKey && args.rateLimitWindowMs && args.rateLimitMax) {
+    const rateLimitKey = args.rateLimitKey;
+    const rateLimitWindowMs = args.rateLimitWindowMs;
+    const rateLimitMax = args.rateLimitMax;
+    if (rateLimitKey && rateLimitWindowMs && rateLimitMax) {
       const existing = await ctx.db
         .query("relay_rate_limits")
-        .withIndex("byKey", (q) => q.eq("key", args.rateLimitKey))
+        .withIndex("byKey", (q) => q.eq("key", rateLimitKey))
         .first();
       const now = nowMs();
       if (!existing) {
         await ctx.db.insert("relay_rate_limits", {
-          key: args.rateLimitKey,
-          windowMs: args.rateLimitWindowMs,
+          key: rateLimitKey,
+          windowMs: rateLimitWindowMs,
           windowStart: now,
           count: 1,
           updatedAt: now,
         });
       } else {
         const windowStart =
-          now - existing.windowStart >= args.rateLimitWindowMs
+          now - existing.windowStart >= rateLimitWindowMs
             ? now
             : existing.windowStart;
         const count =
           windowStart === existing.windowStart ? existing.count + 1 : 1;
-        if (count > args.rateLimitMax) {
+        if (count > rateLimitMax) {
           return {
             ok: false,
             rejected: "rate_limited",
             retryAfterMs:
-              windowStart + args.rateLimitWindowMs - now,
+              windowStart + rateLimitWindowMs - now,
           };
         }
         await ctx.db.patch(existing._id, {
-          windowMs: args.rateLimitWindowMs,
+          windowMs: rateLimitWindowMs,
           windowStart,
           count,
           updatedAt: now,
@@ -140,19 +145,21 @@ export const enqueueOutbound = mutation({
     rateLimitMax: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    if (args.lockKey && args.lockTtlMs) {
+    const lockKey = args.lockKey;
+    const lockTtlMs = args.lockTtlMs;
+    if (lockKey && lockTtlMs) {
       const existing = await ctx.db
         .query("relay_dispatch_locks")
-        .withIndex("byKey", (q) => q.eq("key", args.lockKey))
+        .withIndex("byKey", (q) => q.eq("key", lockKey))
         .first();
       const now = nowMs();
       if (existing && existing.expiresAt > now) {
         return { ok: false, rejected: "locked", expiresAt: existing.expiresAt };
       }
-      const expiresAt = now + args.lockTtlMs;
+      const expiresAt = now + lockTtlMs;
       if (!existing) {
         await ctx.db.insert("relay_dispatch_locks", {
-          key: args.lockKey,
+          key: lockKey,
           expiresAt,
           createdAt: now,
         });
@@ -161,37 +168,40 @@ export const enqueueOutbound = mutation({
       }
     }
 
-    if (args.rateLimitKey && args.rateLimitWindowMs && args.rateLimitMax) {
+    const rateLimitKey = args.rateLimitKey;
+    const rateLimitWindowMs = args.rateLimitWindowMs;
+    const rateLimitMax = args.rateLimitMax;
+    if (rateLimitKey && rateLimitWindowMs && rateLimitMax) {
       const existing = await ctx.db
         .query("relay_rate_limits")
-        .withIndex("byKey", (q) => q.eq("key", args.rateLimitKey))
+        .withIndex("byKey", (q) => q.eq("key", rateLimitKey))
         .first();
       const now = nowMs();
       if (!existing) {
         await ctx.db.insert("relay_rate_limits", {
-          key: args.rateLimitKey,
-          windowMs: args.rateLimitWindowMs,
+          key: rateLimitKey,
+          windowMs: rateLimitWindowMs,
           windowStart: now,
           count: 1,
           updatedAt: now,
         });
       } else {
         const windowStart =
-          now - existing.windowStart >= args.rateLimitWindowMs
+          now - existing.windowStart >= rateLimitWindowMs
             ? now
             : existing.windowStart;
         const count =
           windowStart === existing.windowStart ? existing.count + 1 : 1;
-        if (count > args.rateLimitMax) {
+        if (count > rateLimitMax) {
           return {
             ok: false,
             rejected: "rate_limited",
             retryAfterMs:
-              windowStart + args.rateLimitWindowMs - now,
+              windowStart + rateLimitWindowMs - now,
           };
         }
         await ctx.db.patch(existing._id, {
-          windowMs: args.rateLimitWindowMs,
+          windowMs: rateLimitWindowMs,
           windowStart,
           count,
           updatedAt: now,

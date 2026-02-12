@@ -68,7 +68,7 @@ export const registerDirectMessageHandler = (app: App) => {
             if (!token) return null;
             const filename = typeof file.name === "string" ? file.name : undefined;
             const mimeType = typeof file.mimetype === "string" ? file.mimetype : undefined;
-            const size = typeof file.size === "number" ? file.size : undefined;
+            const size = file.size as number;
             return {
               filename,
               mimeType,
@@ -92,7 +92,9 @@ export const registerDirectMessageHandler = (app: App) => {
             };
           }),
         );
-        files = resolved.filter((file) => file && file.sourceFileId);
+        files = resolved.filter((file): file is NonNullable<typeof file> =>
+          Boolean(file && file.sourceFileId && typeof file.size === "number"),
+        );
         if (files.length === 0) {
           files = undefined;
         }

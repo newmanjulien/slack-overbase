@@ -76,18 +76,6 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
-  canvas: defineTable({
-    canvasId: v.string(),
-    userId: v.string(),
-    teamId: v.string(),
-    questionText: v.optional(v.string()),
-    markdown: v.optional(v.string()),
-    summary: v.optional(v.string()),
-    keyPoints: v.optional(v.array(v.string())),
-    entities: v.optional(v.array(v.string())),
-    sentAt: v.number(),
-  }).index("byTeamUserSentAt", ["teamId", "userId", "sentAt"]),
-
   // Stores one row per processed Slack event so we can skip duplicates. Slack
   // retries on timeouts or slow responses, which means the same event ID can
   // arrive more than once. The `claimEvent` mutation checks this table before

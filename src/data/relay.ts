@@ -1,16 +1,11 @@
 import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
-import type { RelayFileProxyParams } from "../../shared/relay/contract.js";
-
 export type RelayFile = {
-  teamId: RelayFileProxyParams["teamId"];
-  fileId: RelayFileProxyParams["fileId"];
-  expiresAt: RelayFileProxyParams["expiresAt"];
-  filename?: RelayFileProxyParams["filename"];
-  mimeType?: RelayFileProxyParams["mimeType"];
-  token?: RelayFileProxyParams["token"];
   size: number;
+  expiresAt?: number;
+  filename?: string;
+  mimeType?: string;
   proxyUrl?: string;
   sourceFileId?: string;
   sourceWorkspace?: string;

@@ -58,6 +58,7 @@ const uploadFiles = async (client: WebClient, channel: string, files: RelayFile[
     if (!file.proxyUrl) {
       throw new Error("Missing proxy URL");
     }
+    const proxyUrl = file.proxyUrl;
     const size = typeof file.size === "number" ? file.size : null;
     if (!size || size <= 0) {
       throw new Error("Missing file size");
@@ -65,7 +66,7 @@ const uploadFiles = async (client: WebClient, channel: string, files: RelayFile[
 
     const download = await retryWithBackoff(
       async () => {
-        const response = await fetch(file.proxyUrl);
+        const response = await fetch(proxyUrl);
         if (!response.ok || !response.body) {
           const error = new Error(`Proxy fetch failed: ${response.status}`);
           (error as { status?: number }).status = response.status;

@@ -100,19 +100,6 @@ export const convex = {
     claimEvent: (args: { teamId: string; eventId: string; userId?: string }) =>
       getClient().mutation(api.slack.events.claimEvent, args),
   },
-  canvas: {
-    storeAnswer: (args: {
-      userId: string;
-      teamId: string;
-      canvasId: string;
-      questionText?: string;
-      markdown?: string;
-      summary?: string;
-      keyPoints?: string[];
-      entities?: string[];
-      sentAt: number;
-    }) => getClient().mutation(api.slack.canvas.storeAnswer, args),
-  },
   installations: {
     store: (args: { teamId: string; installation: unknown }) =>
       getClient().mutation(api.slack.installations.store, args),

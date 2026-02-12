@@ -55,10 +55,10 @@ export const registerRelayFileProxyRoutes = (payload: {
       const filename = String(req.query.filename || "");
       const mimeType = String(req.query.mimeType || "");
       const size = String(req.query.size || "");
-      const token = String(req.query.token || "");
+      const relayToken = String(req.query.token || "");
       const sig = String(req.query.sig || "");
 
-      if (!teamId || !fileId || !expiresAt || !sig) {
+      if (!teamId || !fileId || !expiresAt || !sig || !relayToken) {
         return res.status(400).json({ ok: false, error: "missing_params" });
       }
       if (Date.now() > expiresAt) {
@@ -72,19 +72,16 @@ export const registerRelayFileProxyRoutes = (payload: {
         filename,
         mimeType,
         size: size ? Number(size) : undefined,
-        token: token || undefined,
+        token: relayToken || undefined,
       }, sig);
       if (!validSig) {
         return res.status(401).json({ ok: false, error: "invalid_signature" });
       }
 
-      if (!token) {
-        return res.status(401).json({ ok: false, error: "missing_token" });
-      }
       const claimed = await claimRelayFileToken({
         teamId,
         fileId,
-        token,
+        token: relayToken,
         ttlMs: 60_000,
       });
       if (!claimed?.ok) {
@@ -96,19 +93,19 @@ export const registerRelayFileProxyRoutes = (payload: {
         isEnterpriseInstall: false,
         enterpriseId: undefined,
       });
-      const token = installation?.bot?.token;
-      if (!token) {
+      const botToken = installation?.bot?.token;
+      if (!botToken) {
         return res.status(500).json({ ok: false, error: "missing_bot_token" });
       }
 
-      const client = new SlackWebClient(token);
+      const client = new SlackWebClient(botToken);
       const file = await resolveFileInfo(client, fileId);
       if (!file.url) {
         return res.status(404).json({ ok: false, error: "missing_file_url" });
       }
 
       const response = await fetch(file.url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${botToken}` },
       });
       if (!response.ok || !response.body) {
         return res.status(502).json({ ok: false, error: "file_fetch_failed" });
@@ -120,9 +117,11 @@ export const registerRelayFileProxyRoutes = (payload: {
       }
       res.setHeader("content-disposition", `attachment; filename="${file.name}"`);
 
-      const readable = Readable.fromWeb(response.body as unknown as ReadableStream);
+      const readable = Readable.fromWeb(
+        response.body as unknown as import("stream/web").ReadableStream,
+      );
       await pipeline(readable, res);
-      await finalizeRelayFileToken({ teamId, fileId, token });
+      await finalizeRelayFileToken({ teamId, fileId, token: relayToken });
     } catch (error) {
       if (
         typeof req.query.token === "string" &&

@@ -1,6 +1,5 @@
 import type { App, ButtonAction, StaticSelectAction } from "@slack/bolt";
 import { getTeamContext } from "../../lib/teamContext.js";
-import { handleDirectMessage } from "../../features/messaging/service.js";
 import { updatePreferences } from "../../data/preferences.js";
 import { getTemplateById, updateTemplateBody } from "../../data/templates.js";
 import {
@@ -88,26 +87,7 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
         logger.error({ error }, "Template DM failed");
       }
 
-      try {
-        const reply = await handleDirectMessage({
-          userId: body.user.id,
-          teamContext,
-          text: templateText,
-          source: "template",
-        });
-        if (reply) {
-          await client.chat.postMessage({
-            channel: dmChannelId,
-            text: reply,
-          });
-        }
-      } catch (error) {
-        logger.error({ error }, "Template OpenAI response failed");
-        await client.chat.postMessage({
-          channel: dmChannelId,
-          text: "Sorry, I hit an error while responding. Please try again.",
-        });
-      }
+      // No LLM follow-up. Template text is sent as-is.
     };
 
     void runTemplateFlow().catch((error) => {
