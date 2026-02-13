@@ -155,26 +155,28 @@ export default defineSchema({
     teamId: v.string(),
     userId: v.string(),
     direction: v.union(v.literal("inbound"), v.literal("outbound")),
+    relayKey: v.string(),
     text: v.optional(v.string()),
     files: v.optional(
       v.array(
         v.object({
           filename: v.optional(v.string()),
           mimeType: v.optional(v.string()),
-          size: v.number(),
-          proxyUrl: v.optional(v.string()),
+          size: v.optional(v.number()),
           sourceFileId: v.optional(v.string()),
           sourceWorkspace: v.optional(v.string()),
-          expiresAt: v.optional(v.number()),
         }),
       ),
     ),
-    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
+    status: v.union(v.literal("queued"), v.literal("delivered"), v.literal("failed")),
     createdAt: v.number(),
-    sentAt: v.optional(v.number()),
-    error: v.optional(v.string()),
+    lastSeenAt: v.number(),
+    deliveredAt: v.optional(v.number()),
+    errorCode: v.optional(v.string()),
+    errorMessage: v.optional(v.string()),
     externalId: v.optional(v.string()),
   })
+    .index("byRelayKey", ["relayKey"])
     .index("byStatusDirectionCreatedAt", ["status", "direction", "createdAt"])
     .index("byTeamUser", ["teamId", "userId"])
     .index("byExternalId", ["externalId"]),
@@ -185,6 +187,7 @@ export default defineSchema({
     channelId: v.string(),
     channelName: v.optional(v.string()),
     createdAt: v.number(),
+    updatedAt: v.optional(v.number()),
   })
     .index("byTeamUser", ["teamId", "userId"])
     .index("byChannelId", ["channelId"]),
@@ -203,17 +206,7 @@ export default defineSchema({
     windowStart: v.number(),
     count: v.number(),
     updatedAt: v.number(),
-  }).index("byKey", ["key"]),
-
-  relay_file_tokens: defineTable({
-    token: v.string(),
-    teamId: v.string(),
-    fileId: v.string(),
-    expiresAt: v.number(),
-    usedAt: v.optional(v.number()),
-    claimedAt: v.optional(v.number()),
-    createdAt: v.number(),
   })
-    .index("byToken", ["token"])
-    .index("byExpiresAt", ["expiresAt"]),
+    .index("byKey", ["key"])
+    .index("byUpdatedAt", ["updatedAt"]),
 });

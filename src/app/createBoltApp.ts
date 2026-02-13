@@ -4,9 +4,10 @@ import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
 import { registerHandlers } from "../handlers/index.js";
 import { registerPortalLinkRoutes } from "../features/portal/portalLinkRoutes.js";
+import { registerRelayAdminRoutes } from "../features/relay/adminRoutes.js";
 import { registerRelayOutboundRoutes } from "../features/relay/outboundRoutes.js";
-import { registerRelayFileProxyRoutes } from "../features/relay/fileProxyRoutes.js";
 import { installationStore } from "./installationStore.js";
+import { slackScopes } from "../lib/slackScopes.js";
 
 export const createBoltApp = () => {
   const config = getConfig();
@@ -16,7 +17,7 @@ export const createBoltApp = () => {
     clientId: config.SLACK_CLIENT_ID,
     clientSecret: config.SLACK_CLIENT_SECRET,
     stateSecret: config.SLACK_STATE_SECRET,
-    scopes: config.slackScopes,
+    scopes: slackScopes,
     installationStore,
     processBeforeResponse: false,
     installerOptions: {
@@ -27,8 +28,8 @@ export const createBoltApp = () => {
   });
 
   registerPortalLinkRoutes({ receiver, logger });
+  registerRelayAdminRoutes({ receiver });
   registerRelayOutboundRoutes({ receiver, installationStore, logger });
-  registerRelayFileProxyRoutes({ receiver, installationStore });
 
   const app = new App({ receiver });
 

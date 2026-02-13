@@ -7,25 +7,27 @@ The responder app (App B) lives in a single internal Slack workspace. It receive
 - App A is installed in many customer workspaces; App B only in one internal workspace.
 - Convex is the integration point for all cross‑app state.
 - Files are streamed; Convex does not store file bytes.
-- File proxy URLs are signed and use one‑time tokens.
+- App A requires `RESPONDER_BOT_TOKEN` for cross‑workspace file transfers.
 
 ## Data contracts (shared)
-- Shared contract: `shared/relay/contract.ts`
+- Shared contract: `shared/relay/types.ts`
 - Relay file payload fields:
-  - `teamId`, `fileId`, `expiresAt`, `filename`, `mimeType`, `size`, `token`, `proxyUrl`
+  - `sourceFileId`, `sourceWorkspace`, `filename`, `mimeType`, `size`
+- Every relay payload includes `relayKey` for idempotency.
 
 ## Convex surfaces used by App B
-- `api.responder.relay.enqueueOutbound`
-- `api.responder.relayChannels.getChannelByTeamUser`
-- `api.responder.relayChannels.setChannelForTeamUser`
-- `api.responder.dispatch.dispatchOutbound`
+- `api.relay.messages.enqueueRelay`
+- `api.relay.channels.getChannelByTeamUser`
+- `api.relay.channels.setChannelForTeamUser`
+- `api.relay.dispatch.dispatchOutbound`
+- `api.relay.installations.getUserAppBotToken`
 
 ## Endpoints (App B)
 ### POST /relay/inbound
 Called by a Convex action when a relay message is ready to post into the responder workspace.
 
 Payload:
-- `teamId`, `userId`, `text?`, `files?`, `messageId?`
+- `relayKey`, `teamId`, `userId`, `text?`, `files?`, `messageId?`
 
 Behavior:
 - Lookup channel by `teamId + userId`.
@@ -33,14 +35,6 @@ Behavior:
 - Post text and files into the channel.
 - If Slack returns 429/5xx, return 503 so Convex retries.
 - On success, return 200.
-
-### GET /relay/file
-Proxy for outbound files (App B → App A).
-
-Behavior:
-- Verify signature and one‑time token via Convex.
-- Stream file from Slack to caller.
-- Claim token before streaming, finalize on success, release on failure.
 
 ## Slack behaviors (App B)
 ### Channel creation
@@ -52,26 +46,23 @@ Behavior:
 - Ignore bot’s own messages.
 - Build outbound relay payload:
   - `text` from message
-  - `files` (if any) with `proxyUrl`, `size`, `filename`, `mimeType`
+  - `files` (if any) with `sourceFileId`, `sourceWorkspace=responder`
 - Call `enqueueOutbound` + `dispatchOutbound`.
 
 ### File handling
-- On file shares, fetch metadata via `files.info`.
-- If file is restricted/unavailable, log and skip.
-- Create a proxy URL using `shared/relay/contract.ts` + one‑time token.
+- On file shares, send `sourceFileId` + `sourceWorkspace`.
+- The destination app downloads from the source workspace using the source bot token, then re‑uploads via Slack’s external upload flow.
 
 ## Retry + rate limiting
 - Inbound relay posting respects Slack 429 with backoff. Return 503 to trigger Convex retry.
-- Outbound dispatch uses Convex idempotency (`externalId`) to avoid duplicates.
+- Outbound dispatch uses `relayKey` to dedupe.
 
 ## Security
 - All relay webhooks require a shared secret header.
-- Proxy URLs are signed + one‑time token with expiry.
+ 
 
 ## Observability
-- Log every relay post and outbound enqueue.
-- Include messageId and teamId:userId in logs.
+- Use `GET /relay/admin` (protected by `ADMIN_API_KEY`) to inspect recent relay failures and stuck messages.
 
 ## Open questions
-- How long should proxy token TTL be for outbound (App B → App A)?
 - Do we want to store a minimal audit record for outbound failures in App B (in addition to Convex)?

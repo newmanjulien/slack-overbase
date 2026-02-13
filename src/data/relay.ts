@@ -1,20 +1,13 @@
 import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
-export type RelayFile = {
-  size: number;
-  expiresAt?: number;
-  filename?: string;
-  mimeType?: string;
-  proxyUrl?: string;
-  sourceFileId?: string;
-  sourceWorkspace?: string;
-};
+import type { RelayFile } from "../../shared/relay/types.js";
 
 export const enqueueInboundRelay = async (
   userId: string,
   teamContext: TeamContext,
   payload: {
+    relayKey: string;
     text?: string;
     files?: RelayFile[];
     externalId?: string;
@@ -22,7 +15,9 @@ export const enqueueInboundRelay = async (
 ) => {
   requireTeamContext(teamContext);
   const client = getConvexClient();
-  return client.mutation(api.responder.relay.enqueueInbound, {
+  return client.mutation(api.relay.messages.enqueueRelay, {
+    relayKey: payload.relayKey,
+    direction: "inbound",
     teamId: teamContext.teamId,
     userId,
     text: payload.text,
@@ -33,20 +28,25 @@ export const enqueueInboundRelay = async (
 
 export const markRelaySent = async (id: string) => {
   const client = getConvexClient();
-  return client.mutation(api.responder.relay.markSent, {
+  return client.mutation(api.relay.messages.markDelivered, {
     id: id as unknown as import("../../convex/_generated/dataModel.js").Id<"relay_messages">,
   });
 };
 
-export const markRelayFailed = async (id: string, error: string) => {
+export const markRelayFailed = async (
+  id: string,
+  payload: { errorCode: string; errorMessage?: string },
+) => {
   const client = getConvexClient();
-  return client.mutation(api.responder.relay.markFailed, {
+  return client.mutation(api.relay.messages.markFailed, {
     id: id as unknown as import("../../convex/_generated/dataModel.js").Id<"relay_messages">,
-    error,
+    errorCode: payload.errorCode,
+    errorMessage: payload.errorMessage,
   });
 };
 
 export const dispatchInboundRelay = async (payload: {
+  relayKey: string;
   teamId: string;
   userId: string;
   text?: string;
@@ -54,5 +54,5 @@ export const dispatchInboundRelay = async (payload: {
   messageId?: string;
 }) => {
   const client = getConvexClient();
-  return client.action(api.responder.dispatch.dispatchInbound, payload);
+  return client.action(api.relay.dispatch.dispatchInbound, payload);
 };

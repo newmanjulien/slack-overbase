@@ -3,6 +3,7 @@ import { v } from "convex/values";
 
 export const dispatchOutbound = action({
   args: {
+    relayKey: v.string(),
     teamId: v.string(),
     userId: v.string(),
     text: v.optional(v.string()),
@@ -12,10 +13,8 @@ export const dispatchOutbound = action({
           filename: v.optional(v.string()),
           mimeType: v.optional(v.string()),
           size: v.optional(v.number()),
-          proxyUrl: v.optional(v.string()),
           sourceFileId: v.optional(v.string()),
           sourceWorkspace: v.optional(v.string()),
-          expiresAt: v.optional(v.number()),
         }),
       ),
     ),
@@ -35,6 +34,7 @@ export const dispatchOutbound = action({
         "x-relay-key": secret,
       },
       body: JSON.stringify({
+        relayKey: args.relayKey,
         teamId: args.teamId,
         userId: args.userId,
         text: args.text,
@@ -54,6 +54,7 @@ export const dispatchOutbound = action({
 
 export const dispatchInbound = action({
   args: {
+    relayKey: v.string(),
     teamId: v.string(),
     userId: v.string(),
     text: v.optional(v.string()),
@@ -62,11 +63,9 @@ export const dispatchInbound = action({
         v.object({
           filename: v.optional(v.string()),
           mimeType: v.optional(v.string()),
-          size: v.number(),
-          proxyUrl: v.optional(v.string()),
+          size: v.optional(v.number()),
           sourceFileId: v.optional(v.string()),
           sourceWorkspace: v.optional(v.string()),
-          expiresAt: v.optional(v.number()),
         }),
       ),
     ),
@@ -86,6 +85,7 @@ export const dispatchInbound = action({
         "x-relay-key": secret,
       },
       body: JSON.stringify({
+        relayKey: args.relayKey,
         teamId: args.teamId,
         userId: args.userId,
         text: args.text,

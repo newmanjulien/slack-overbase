@@ -15,4 +15,4 @@ What does NOT go here:
 
 Note:
 - This folder is only for the main Slack app’s Convex functions.
-- Cross-app relay and responder functions live in /convex/responder.
+- Cross-app relay functions live in /convex/relay.
