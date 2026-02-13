@@ -22,4 +22,11 @@ crons.interval(
   {},
 );
 
+crons.interval(
+  "cleanup expired relay tokens",
+  { hours: 24 },
+  internal.responder.relayTokens.cleanupExpiredTokens,
+  {},
+);
+
 export default crons;

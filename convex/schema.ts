@@ -76,18 +76,6 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("byTeamUser", ["teamId", "userId"]),
 
-  canvas: defineTable({
-    canvasId: v.string(),
-    userId: v.string(),
-    teamId: v.string(),
-    questionText: v.optional(v.string()),
-    markdown: v.optional(v.string()),
-    summary: v.optional(v.string()),
-    keyPoints: v.optional(v.array(v.string())),
-    entities: v.optional(v.array(v.string())),
-    sentAt: v.number(),
-  }).index("byTeamUserSentAt", ["teamId", "userId", "sentAt"]),
-
   // Stores one row per processed Slack event so we can skip duplicates. Slack
   // retries on timeouts or slow responses, which means the same event ID can
   // arrive more than once. The `claimEvent` mutation checks this table before
@@ -162,4 +150,70 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("byTeamId", ["teamId"]),
+
+  relay_messages: defineTable({
+    teamId: v.string(),
+    userId: v.string(),
+    direction: v.union(v.literal("inbound"), v.literal("outbound")),
+    text: v.optional(v.string()),
+    files: v.optional(
+      v.array(
+        v.object({
+          filename: v.optional(v.string()),
+          mimeType: v.optional(v.string()),
+          size: v.number(),
+          proxyUrl: v.optional(v.string()),
+          sourceFileId: v.optional(v.string()),
+          sourceWorkspace: v.optional(v.string()),
+          expiresAt: v.optional(v.number()),
+        }),
+      ),
+    ),
+    status: v.union(v.literal("pending"), v.literal("sent"), v.literal("failed")),
+    createdAt: v.number(),
+    sentAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+    externalId: v.optional(v.string()),
+  })
+    .index("byStatusDirectionCreatedAt", ["status", "direction", "createdAt"])
+    .index("byTeamUser", ["teamId", "userId"])
+    .index("byExternalId", ["externalId"]),
+
+  relay_user_channels: defineTable({
+    teamId: v.string(),
+    userId: v.string(),
+    channelId: v.string(),
+    channelName: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("byTeamUser", ["teamId", "userId"])
+    .index("byChannelId", ["channelId"]),
+
+  relay_dispatch_locks: defineTable({
+    key: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("byKey", ["key"])
+    .index("byExpiresAt", ["expiresAt"]),
+
+  relay_rate_limits: defineTable({
+    key: v.string(),
+    windowMs: v.number(),
+    windowStart: v.number(),
+    count: v.number(),
+    updatedAt: v.number(),
+  }).index("byKey", ["key"]),
+
+  relay_file_tokens: defineTable({
+    token: v.string(),
+    teamId: v.string(),
+    fileId: v.string(),
+    expiresAt: v.number(),
+    usedAt: v.optional(v.number()),
+    claimedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("byToken", ["token"])
+    .index("byExpiresAt", ["expiresAt"]),
 });

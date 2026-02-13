@@ -10,6 +10,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().min(1),
   CONVEX_URL: z.string().min(1),
   ADMIN_API_KEY: z.string().min(1),
+  RELAY_WEBHOOK_SECRET: z.string().min(1),
   APP_BASE_URL: z.string().min(1),
   PORTAL_BASE_URL: z.string().optional(),
   PORTAL_LINK_SECRET: z.string().min(1),
