@@ -115,7 +115,13 @@ export const registerRelayFileProxyRoutes = (payload: {
       if (file.size) {
         res.setHeader("content-length", String(file.size));
       }
-      res.setHeader("content-disposition", `attachment; filename="${file.name}"`);
+      const safeName = file.name
+        .replace(/[^\x20-\x7E]+/g, "")
+        .replace(/["\\]/g, "")
+        .trim();
+      if (safeName) {
+        res.setHeader("content-disposition", `attachment; filename="${safeName}"`);
+      }
 
       const readable = Readable.fromWeb(
         response.body as unknown as import("stream/web").ReadableStream,
