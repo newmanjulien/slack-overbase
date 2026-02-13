@@ -23,9 +23,23 @@ crons.interval(
 );
 
 crons.interval(
-  "cleanup expired relay tokens",
+  "cleanup relay messages",
   { hours: 24 },
-  internal.responder.relayTokens.cleanupExpiredTokens,
+  internal.relay.cleanup.cleanupRelayMessages,
+  {},
+);
+
+crons.interval(
+  "cleanup relay locks",
+  { hours: 1 },
+  internal.relay.cleanup.cleanupRelayLocks,
+  {},
+);
+
+crons.interval(
+  "cleanup relay rate limits",
+  { hours: 6 },
+  internal.relay.cleanup.cleanupRelayRateLimits,
   {},
 );
 

@@ -7,18 +7,18 @@ import { markRelayFailed, markRelaySent } from "../../data/relay.js";
 import { addMessage, updateLastMessageAt } from "../../data/conversations.js";
 import { getRateLimiter } from "../../lib/rateLimit.js";
 import { retryWithBackoff, sleep } from "../../lib/retry.js";
+import { transferSlackFile } from "./fileTransfer.js";
+import { SOURCE_WORKSPACE_RESPONDER } from "../../../shared/relay/types.js";
 
 type RelayFile = {
   filename?: string;
   mimeType?: string;
-  size?: number;
-  proxyUrl?: string;
   sourceFileId?: string;
   sourceWorkspace?: string;
-  expiresAt?: number;
 };
 
 type OutboundPayload = {
+  relayKey: string;
   teamId: string;
   userId: string;
   text?: string;
@@ -50,115 +50,24 @@ const getSlackRetryAfterMs = (error: unknown) => {
   return null;
 };
 
-const uploadFiles = async (client: WebClient, channel: string, files: RelayFile[]) => {
+const uploadFiles = async (destinationToken: string, channel: string, files: RelayFile[]) => {
+  const { RESPONDER_BOT_TOKEN } = getConfig();
+  if (!RESPONDER_BOT_TOKEN) {
+    throw new Error("Missing responder bot token");
+  }
   for (const file of files) {
-    if (typeof file.expiresAt === "number" && Date.now() > file.expiresAt) {
-      throw new Error("Proxy URL expired");
+    if (!file.sourceFileId) {
+      throw new Error("Missing source file id");
     }
-    if (!file.proxyUrl) {
-      throw new Error("Missing proxy URL");
+    if (file.sourceWorkspace !== SOURCE_WORKSPACE_RESPONDER) {
+      throw new Error("Unexpected source workspace");
     }
-    const proxyUrl = file.proxyUrl;
-    const size = typeof file.size === "number" ? file.size : null;
-    if (!size || size <= 0) {
-      throw new Error("Missing file size");
-    }
-
-    const download = await retryWithBackoff(
-      async () => {
-        const response = await fetch(proxyUrl);
-        if (!response.ok || !response.body) {
-          const error = new Error(`Proxy fetch failed: ${response.status}`);
-          (error as { status?: number }).status = response.status;
-          throw error;
-        }
-        return response;
-      },
-      {
-        attempts: 3,
-        baseDelayMs: 500,
-        maxDelayMs: 4000,
-        jitter: 0.2,
-        isRetryable: (err) => {
-          const status = (err as { status?: number }).status;
-          return status === 429 || (status !== undefined && status >= 500);
-        },
-        getRetryAfterMs: () => null,
-      },
-    );
-
-    const uploadInfo = await retryWithBackoff(
-      () =>
-        client.files.getUploadURLExternal({
-          filename: file.filename || "file",
-          length: size,
-        }),
-      {
-        attempts: 3,
-        baseDelayMs: 500,
-        maxDelayMs: 4000,
-        jitter: 0.2,
-        isRetryable: isSlackRetryable,
-        getRetryAfterMs: getSlackRetryAfterMs,
-      },
-    );
-
-    const uploadUrl = uploadInfo.upload_url as string | undefined;
-    const fileId = uploadInfo.file_id as string | undefined;
-    if (!uploadUrl || !fileId) {
-      throw new Error("Missing upload URL");
-    }
-
-    const uploadResponse = await retryWithBackoff(
-      async () => {
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          headers: {
-            "content-type": file.mimeType || "application/octet-stream",
-            "content-length": String(size),
-          },
-          duplex: "half",
-          body: download.body,
-        });
-        if (!response.ok) {
-          const error = new Error(`Upload failed: ${response.status}`);
-          (error as { status?: number }).status = response.status;
-          throw error;
-        }
-        return response;
-      },
-      {
-        attempts: 3,
-        baseDelayMs: 500,
-        maxDelayMs: 4000,
-        jitter: 0.2,
-        isRetryable: (err) => {
-          const status = (err as { status?: number }).status;
-          return status === 429 || (status !== undefined && status >= 500);
-        },
-        getRetryAfterMs: () => null,
-      },
-    );
-
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed: ${uploadResponse.status}`);
-    }
-
-    await retryWithBackoff(
-      () =>
-        client.files.completeUploadExternal({
-          files: [{ id: fileId, title: file.filename || "file" }],
-          channel_id: channel,
-        }),
-      {
-        attempts: 3,
-        baseDelayMs: 500,
-        maxDelayMs: 4000,
-        jitter: 0.2,
-        isRetryable: isSlackRetryable,
-        getRetryAfterMs: getSlackRetryAfterMs,
-      },
-    );
+    await transferSlackFile({
+      sourceToken: RESPONDER_BOT_TOKEN,
+      destinationToken,
+      sourceFileId: file.sourceFileId,
+      destinationChannelId: channel,
+    });
   }
 };
 
@@ -168,22 +77,6 @@ export const registerRelayOutboundRoutes = (payload: {
   logger: { error: (meta: unknown, msg?: string) => void };
 }) => {
   const { receiver, installationStore, logger } = payload;
-
-  const describeError = (error: unknown) => {
-    if (!error || typeof error !== "object") {
-      return { message: "unknown_error" };
-    }
-    const err = error as {
-      message?: string;
-      data?: { error?: string };
-      status?: number;
-    };
-    return {
-      message: err.message || "unknown_error",
-      slackError: err.data?.error,
-      status: err.status,
-    };
-  };
 
   receiver.app.post(
     "/relay/outbound",
@@ -203,11 +96,12 @@ export const registerRelayOutboundRoutes = (payload: {
 
         const body = (req.body || {}) as OutboundPayload;
         messageId = body.messageId;
+        const relayKey = body.relayKey;
         const teamId = body.teamId;
         const userId = body.userId;
 
-        if (!teamId || !userId) {
-          return res.status(400).json({ ok: false, error: "missing_team_or_user" });
+        if (!relayKey || !teamId || !userId) {
+          return res.status(400).json({ ok: false, error: "missing_required_fields" });
         }
 
         const installation = await installationStore.fetchInstallation({
@@ -260,7 +154,7 @@ export const registerRelayOutboundRoutes = (payload: {
 
         if (Array.isArray(body.files) && body.files.length > 0) {
           failureCode = "relay_file_upload_failed";
-          await uploadFiles(client, channel, body.files);
+          await uploadFiles(token, channel, body.files);
           await updateLastMessageAt(userId, { teamId }, Date.now());
         }
 
@@ -270,17 +164,15 @@ export const registerRelayOutboundRoutes = (payload: {
 
         return res.json({ ok: true });
       } catch (error) {
-        const errorInfo = describeError(error);
         if (messageId) {
-          await markRelayFailed(messageId, `${failureCode}:${errorInfo.message}`);
+          const details = error instanceof Error ? error.message : "unknown_error";
+          await markRelayFailed(messageId, {
+            errorCode: failureCode,
+            errorMessage: details,
+          });
         }
-        logger.error({ error, errorInfo }, "Relay outbound delivery failed");
-        return res.status(500).json({
-          ok: false,
-          error: errorInfo.message,
-          slackError: errorInfo.slackError,
-          status: errorInfo.status,
-        });
+        logger.error({ error }, "Relay outbound delivery failed");
+        return res.status(500).json({ ok: false, error: "server_error" });
       }
     },
   );

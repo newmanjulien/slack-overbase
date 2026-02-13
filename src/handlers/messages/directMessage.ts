@@ -5,9 +5,7 @@ import { claimSlackEvent } from "../../data/eventDedup.js";
 import { getEventId, getEventTimeMs, isDirectUserMessage } from "../../gateways/slack.js";
 import { dispatchInboundRelay, enqueueInboundRelay } from "../../data/relay.js";
 import { addMessage, updateLastMessageAt } from "../../data/conversations.js";
-import { getConfig } from "../../lib/config.js";
-import { buildRelayFileProxyUrl } from "../../../shared/relay/contract.js";
-import { createRelayFileToken } from "../../data/relayTokens.js";
+import { buildRelayKey, SOURCE_WORKSPACE_USER_APP } from "../../../shared/relay/types.js";
 
 const MAX_RETRY_AGE_MS = 30000;
 
@@ -53,54 +51,35 @@ export const registerDirectMessageHandler = (app: App) => {
     try {
       let files;
       if (Array.isArray(message.files) && message.files.length > 0) {
-        const { APP_BASE_URL, RELAY_WEBHOOK_SECRET } = getConfig();
-        const expiresAt = Date.now() + 15 * 60 * 1000;
         const resolved = await Promise.all(
           message.files.map(async (file) => {
             if (typeof file.id !== "string") return null;
-            if (typeof file.size !== "number") return null;
-            const tokenResult = await createRelayFileToken({
-              teamId: teamContext.teamId,
-              fileId: file.id,
-              expiresAt,
-            });
-            const token = tokenResult?.token;
-            if (!token) return null;
             const filename = typeof file.name === "string" ? file.name : undefined;
             const mimeType = typeof file.mimetype === "string" ? file.mimetype : undefined;
-            const size = file.size as number;
             return {
               filename,
               mimeType,
-              size,
               sourceFileId: file.id,
-              sourceWorkspace: teamContext.teamId,
-              expiresAt,
-              proxyUrl: buildRelayFileProxyUrl(
-                {
-                  teamId: teamContext.teamId,
-                  fileId: file.id,
-                  expiresAt,
-                  filename,
-                  mimeType,
-                  size,
-                  token,
-                },
-                RELAY_WEBHOOK_SECRET,
-                APP_BASE_URL,
-              ),
+              sourceWorkspace: SOURCE_WORKSPACE_USER_APP,
+              size: typeof file.size === "number" ? file.size : undefined,
             };
           }),
         );
         files = resolved.filter((file): file is NonNullable<typeof file> =>
-          Boolean(file && file.sourceFileId && typeof file.size === "number"),
+          Boolean(file && file.sourceFileId),
         );
         if (files.length === 0) {
           files = undefined;
         }
       }
 
+      const relayKey = buildRelayKey([
+        teamContext.teamId,
+        message.user,
+        eventId || (typeof message.ts === "string" ? message.ts : undefined),
+      ]);
       const result = await enqueueInboundRelay(message.user, teamContext, {
+        relayKey,
         text: userText || undefined,
         files,
         externalId: eventId,
@@ -108,6 +87,7 @@ export const registerDirectMessageHandler = (app: App) => {
 
       try {
         await dispatchInboundRelay({
+          relayKey,
           teamId: teamContext.teamId,
           userId: message.user,
           text: userText || undefined,

@@ -6,4 +6,4 @@ This folder contains cross-app contracts and utilities shared by:
 - The portal app (if needed)
 
 Current contracts:
-- `shared/relay/contract.ts` — relay file signing, verification, and proxy URL shape.
+- `shared/relay/types.ts` — relay envelope + file metadata shared across apps.

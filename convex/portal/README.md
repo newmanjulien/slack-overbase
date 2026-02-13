@@ -17,4 +17,4 @@ Context:
 
 Note:
 - Portal functions only. Shared DB tables live in convex/schema.ts.
-- Responder relay functions live in /convex/responder.
+- Relay functions live in /convex/relay.
