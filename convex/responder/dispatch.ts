@@ -51,3 +51,54 @@ export const dispatchOutbound = action({
     return { ok: true };
   },
 });
+
+export const dispatchInbound = action({
+  args: {
+    teamId: v.string(),
+    userId: v.string(),
+    text: v.optional(v.string()),
+    files: v.optional(
+      v.array(
+        v.object({
+          filename: v.optional(v.string()),
+          mimeType: v.optional(v.string()),
+          size: v.number(),
+          proxyUrl: v.optional(v.string()),
+          sourceFileId: v.optional(v.string()),
+          sourceWorkspace: v.optional(v.string()),
+          expiresAt: v.optional(v.number()),
+        }),
+      ),
+    ),
+    messageId: v.optional(v.string()),
+  },
+  handler: async (_ctx, args) => {
+    const baseUrl = process.env.RESPONDER_INBOUND_WEBHOOK_URL;
+    const secret = process.env.RELAY_WEBHOOK_SECRET;
+    if (!baseUrl || !secret) {
+      throw new Error("Missing responder inbound webhook configuration");
+    }
+
+    const response = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-relay-key": secret,
+      },
+      body: JSON.stringify({
+        teamId: args.teamId,
+        userId: args.userId,
+        text: args.text,
+        files: args.files,
+        messageId: args.messageId,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Relay inbound failed: ${response.status} ${errorText}`);
+    }
+
+    return { ok: true };
+  },
+});

@@ -45,3 +45,14 @@ export const markRelayFailed = async (id: string, error: string) => {
     error,
   });
 };
+
+export const dispatchInboundRelay = async (payload: {
+  teamId: string;
+  userId: string;
+  text?: string;
+  files?: RelayFile[];
+  messageId?: string;
+}) => {
+  const client = getConvexClient();
+  return client.action(api.responder.dispatch.dispatchInbound, payload);
+};

@@ -3,7 +3,7 @@ import { logger } from "../../lib/logger.js";
 import { getTeamContext } from "../../lib/teamContext.js";
 import { claimSlackEvent } from "../../data/eventDedup.js";
 import { getEventId, getEventTimeMs, isDirectUserMessage } from "../../gateways/slack.js";
-import { enqueueInboundRelay } from "../../data/relay.js";
+import { dispatchInboundRelay, enqueueInboundRelay } from "../../data/relay.js";
 import { addMessage, updateLastMessageAt } from "../../data/conversations.js";
 import { getConfig } from "../../lib/config.js";
 import { buildRelayFileProxyUrl } from "../../../shared/relay/contract.js";
@@ -100,11 +100,23 @@ export const registerDirectMessageHandler = (app: App) => {
         }
       }
 
-      await enqueueInboundRelay(message.user, teamContext, {
+      const result = await enqueueInboundRelay(message.user, teamContext, {
         text: userText || undefined,
         files,
         externalId: eventId,
       });
+
+      try {
+        await dispatchInboundRelay({
+          teamId: teamContext.teamId,
+          userId: message.user,
+          text: userText || undefined,
+          files,
+          messageId: (result as { id?: string }).id,
+        });
+      } catch (error) {
+        logger.warn({ error }, "Relay inbound dispatch failed");
+      }
 
       if (userText) {
         await addMessage(message.user, teamContext, {
