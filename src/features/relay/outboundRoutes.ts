@@ -117,6 +117,7 @@ const uploadFiles = async (client: WebClient, channel: string, files: RelayFile[
             "content-type": file.mimeType || "application/octet-stream",
             "content-length": String(size),
           },
+          duplex: "half",
           body: download.body,
         });
         if (!response.ok) {
