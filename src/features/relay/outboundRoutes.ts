@@ -168,6 +168,22 @@ export const registerRelayOutboundRoutes = (payload: {
 }) => {
   const { receiver, installationStore, logger } = payload;
 
+  const describeError = (error: unknown) => {
+    if (!error || typeof error !== "object") {
+      return { message: "unknown_error" };
+    }
+    const err = error as {
+      message?: string;
+      data?: { error?: string };
+      status?: number;
+    };
+    return {
+      message: err.message || "unknown_error",
+      slackError: err.data?.error,
+      status: err.status,
+    };
+  };
+
   receiver.app.post(
     "/relay/outbound",
     express.json({ limit: "2mb" }),
@@ -253,12 +269,17 @@ export const registerRelayOutboundRoutes = (payload: {
 
         return res.json({ ok: true });
       } catch (error) {
+        const errorInfo = describeError(error);
         if (messageId) {
-          const details = error instanceof Error ? error.message : "unknown_error";
-          await markRelayFailed(messageId, `${failureCode}:${details}`);
+          await markRelayFailed(messageId, `${failureCode}:${errorInfo.message}`);
         }
-        logger.error({ error }, "Relay outbound delivery failed");
-        return res.status(500).json({ ok: false, error: "server_error" });
+        logger.error({ error, errorInfo }, "Relay outbound delivery failed");
+        return res.status(500).json({
+          ok: false,
+          error: errorInfo.message,
+          slackError: errorInfo.slackError,
+          status: errorInfo.status,
+        });
       }
     },
   );
