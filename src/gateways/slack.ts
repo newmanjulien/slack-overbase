@@ -17,14 +17,18 @@ export type MessageEnvelope = EnvelopedEvent<MessageEvent>;
 export const isDirectUserMessage = (message: MessageEvent): message is GenericMessageEvent => {
   return (
     message.type === "message" &&
-    message.subtype === undefined &&
+    (message.subtype === undefined || message.subtype === "file_share") &&
     message.channel_type === "im" &&
     typeof message.user === "string"
   );
 };
 
 export const isUserMessage = (message: MessageEvent): message is GenericMessageEvent => {
-  return message.type === "message" && message.subtype === undefined && typeof message.user === "string";
+  return (
+    message.type === "message" &&
+    (message.subtype === undefined || message.subtype === "file_share") &&
+    typeof message.user === "string"
+  );
 };
 
 export const getEventId = (body: MessageEnvelope, message: MessageEvent): string => {
