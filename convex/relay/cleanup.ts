@@ -2,7 +2,7 @@ import { internalMutation } from "../_generated/server.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export const cleanupRelayMessages = internalMutation({
+export const cleanupRelayMessages: ReturnType<typeof internalMutation> = internalMutation({
   handler: async (ctx) => {
     const cutoff = Date.now() - 14 * DAY_MS;
     const queued = await ctx.db
@@ -69,7 +69,7 @@ export const cleanupRelayMessages = internalMutation({
   },
 });
 
-export const cleanupRelayLocks = internalMutation({
+export const cleanupRelayLocks: ReturnType<typeof internalMutation> = internalMutation({
   handler: async (ctx) => {
     const cutoff = Date.now();
     const rows = await ctx.db
@@ -83,7 +83,7 @@ export const cleanupRelayLocks = internalMutation({
   },
 });
 
-export const cleanupRelayRateLimits = internalMutation({
+export const cleanupRelayRateLimits: ReturnType<typeof internalMutation> = internalMutation({
   handler: async (ctx) => {
     const cutoff = Date.now() - 30 * 60 * 1000;
     const rows = await ctx.db

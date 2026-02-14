@@ -3,16 +3,16 @@ import { logger } from "../../lib/logger.js";
 import { getTeamContext } from "../../lib/teamContext.js";
 import { claimSlackEvent } from "../../data/eventDedup.js";
 import { getEventId, getEventTimeMs, isDirectUserMessage } from "../../gateways/slack.js";
-import { dispatchInboundRelay, enqueueInboundRelay } from "../../data/relay.js";
+import { dispatchInboundRelay, enqueueInboundRelay, markRelaySent } from "../../data/relay.js";
 import { addMessage, updateLastMessageAt } from "../../data/conversations.js";
-import { buildRelayKey, SOURCE_WORKSPACE_USER_APP } from "../../../shared/relay/types.js";
+import { buildRelayKey, SOURCE_WORKSPACE_USER_APP } from "@newmanjulien/overbase-contracts";
 
 const MAX_RETRY_AGE_MS = 30000;
 
 type DirectMessageArgs = SlackEventMiddlewareArgs<"message"> & AllMiddlewareArgs;
 
 export const registerDirectMessageHandler = (app: App) => {
-  app.message(async ({ message, say, context, body }: DirectMessageArgs) => {
+  app.message(async ({ message, context, body }: DirectMessageArgs) => {
     if (!message || !isDirectUserMessage(message)) {
       return;
     }
@@ -94,6 +94,10 @@ export const registerDirectMessageHandler = (app: App) => {
           files,
           messageId: (result as { id?: string }).id,
         });
+        const messageId = (result as { id?: string }).id;
+        if (messageId) {
+          await markRelaySent(messageId);
+        }
       } catch (error) {
         logger.warn({ error }, "Relay inbound dispatch failed");
       }

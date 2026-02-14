@@ -3,7 +3,7 @@ const { App, ExpressReceiver } = pkg;
 import { getConfig } from "../lib/config.js";
 import { logger } from "../lib/logger.js";
 import { registerHandlers } from "../handlers/index.js";
-import { registerPortalLinkRoutes } from "../features/portal/portalLinkRoutes.js";
+import { registerPortalLinkRoutes } from "../features/portal-links/portalLinkRoutes.js";
 import { registerRelayAdminRoutes } from "../features/relay/adminRoutes.js";
 import { registerRelayOutboundRoutes } from "../features/relay/outboundRoutes.js";
 import { installationStore } from "./installationStore.js";

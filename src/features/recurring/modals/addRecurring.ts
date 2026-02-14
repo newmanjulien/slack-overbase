@@ -37,7 +37,6 @@ export const buildAddRecurringQuestionModal = ({
   const userTimeZone = timeZone || "UTC";
   const firstDeliveryText = formatFirstDeliveryDate(
     getFirstDeliveryDate(
-      new Date(),
       selectedFrequency,
       initialDeliveryOption?.value,
       userTimeZone,

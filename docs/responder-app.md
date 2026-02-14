@@ -10,7 +10,8 @@ The responder app (App B) lives in a single internal Slack workspace. It receive
 - App A requires `RESPONDER_BOT_TOKEN` for cross‑workspace file transfers.
 
 ## Data contracts (shared)
-- Shared contract: `shared/relay/types.ts`
+- Shared contract: `@newmanjulien/overbase-contracts`
+- Source lives in `packages/contracts` in the Slack app repo.
 - Relay file payload fields:
   - `sourceFileId`, `sourceWorkspace`, `filename`, `mimeType`, `size`
 - Every relay payload includes `relayKey` for idempotency.

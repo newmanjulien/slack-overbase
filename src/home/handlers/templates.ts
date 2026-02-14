@@ -97,7 +97,7 @@ export const registerHomeTemplateHandlers = (app: App, publishHome: PublishHome)
 
   app.view(
     "edit_view_template_modal",
-    async ({ ack, body, view, client }: HomeViewArgs) => {
+    async ({ ack, body, view }: HomeViewArgs) => {
       const templateId = view.private_metadata || "";
       if (!templateId) {
         await ack();

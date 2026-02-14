@@ -125,7 +125,6 @@ const getLastWeekdayOfMonth = (
 };
 
 export const getFirstDeliveryDate = (
-  now: Date,
   frequency: RecurringFrequency | undefined,
   delivery: string | undefined,
   timeZone: string,

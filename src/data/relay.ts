@@ -1,7 +1,7 @@
 import { getConvexClient } from "../lib/convexClient.js";
 import { api } from "../../convex/_generated/api.js";
 import { requireTeamContext, TeamContext } from "../lib/teamContext.js";
-import type { RelayFile } from "../../shared/relay/types.js";
+import type { RelayFile } from "@newmanjulien/overbase-contracts";
 
 export const enqueueInboundRelay = async (
   userId: string,

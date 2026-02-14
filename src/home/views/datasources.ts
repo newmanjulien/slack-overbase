@@ -23,6 +23,51 @@ export const buildDatasourcesBlocks = (
   portalLinks: HomeSectionDataMap["datasources"]["portalLinks"],
 ): KnownBlock[] => {
   const allowlistElement = buildAllowlistElement(allowlist);
+  const connectorsBlock: KnownBlock = portalLinks.connectorsUrl
+    ? {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            action_id: "manage_connectors",
+            text: {
+              type: "plain_text",
+              text: "Manage connectors",
+            },
+            url: portalLinks.connectorsUrl,
+          },
+        ],
+      }
+    : {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "_Portal link unavailable. Please try again later._",
+        },
+      };
+  const peopleNotInSlackText = portalLinks.peopleUrl
+    ? "*People not in Slack*\nAdd anyone and I'll connect with them by email, text message, etc."
+    : "*People not in Slack*\n_Portal link unavailable. Please try again later._";
+  const peopleNotInSlackSection: KnownBlock = {
+    type: "section",
+    text: {
+      type: "mrkdwn",
+      text: peopleNotInSlackText,
+    },
+    ...(portalLinks.peopleUrl
+      ? {
+          accessory: {
+            type: "button",
+            action_id: "manage_people_portal",
+            text: {
+              type: "plain_text",
+              text: "Add people not in Slack",
+            },
+            url: portalLinks.peopleUrl,
+          },
+        }
+      : {}),
+  };
 
   return [
     {
@@ -39,20 +84,7 @@ export const buildDatasourcesBlocks = (
         text: "I can analyze any of your internal datasources. Easily and quickly set up connectors without needing to migrate, clean up or change any data",
       },
     },
-    {
-      type: "actions",
-      elements: [
-        {
-          type: "button",
-          action_id: "manage_connectors",
-          text: {
-            type: "plain_text",
-            text: "Manage connectors",
-          },
-          url: portalLinks.connectorsUrl || "https://example.com/connectors",
-        },
-      ],
-    },
+    connectorsBlock,
     {
       type: "header",
       text: {
@@ -90,21 +122,6 @@ export const buildDatasourcesBlocks = (
         text: " ",
       },
     },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: "*People not in Slack*\nAdd anyone and I'll connect with them by email, text message, etc.",
-      },
-      accessory: {
-        type: "button",
-        action_id: "manage_people_portal",
-        text: {
-          type: "plain_text",
-          text: "Add people not in Slack",
-        },
-        url: portalLinks.peopleUrl || "https://google.com/",
-      },
-    },
+    peopleNotInSlackSection,
   ];
 };

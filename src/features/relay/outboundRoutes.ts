@@ -8,7 +8,7 @@ import { addMessage, updateLastMessageAt } from "../../data/conversations.js";
 import { getRateLimiter } from "../../lib/rateLimit.js";
 import { retryWithBackoff, sleep } from "../../lib/retry.js";
 import { transferSlackFile } from "./fileTransfer.js";
-import { SOURCE_WORKSPACE_RESPONDER } from "../../../shared/relay/types.js";
+import { SOURCE_WORKSPACE_RESPONDER } from "@newmanjulien/overbase-contracts";
 
 type RelayFile = {
   filename?: string;
