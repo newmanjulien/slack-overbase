@@ -14,6 +14,7 @@ What does NOT go here:
 Context:
 - The portal is a separate Next.js project that uses the same Convex database.
 - This repo is the only place that hosts Convex functions; the portal app does not have a /convex folder.
+- Contract types are published from `packages/contracts`.
 
 Note:
 - Portal functions only. Shared DB tables live in convex/schema.ts.

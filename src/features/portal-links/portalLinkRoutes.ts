@@ -3,8 +3,7 @@ import express from "express";
 import { getConfig } from "../../lib/config.js";
 import { getConvexClient } from "../../lib/convexClient.js";
 import { api } from "../../../convex/_generated/api.js";
-
-const allowedNext = new Set(["/connectors", "/people", "/payments"]);
+import { PORTAL_ALLOWED_NEXT, type PortalPath } from "@newmanjulien/overbase-contracts";
 
 const buildSignature = (secret: string, payload: string) =>
   crypto.createHmac("sha256", secret).update(payload).digest("hex");
@@ -34,7 +33,7 @@ export const registerPortalLinkRoutes = (payload: {
         return res.status(400).json({ ok: false, error: "missing_params" });
       }
 
-      if (!allowedNext.has(next)) {
+      if (!PORTAL_ALLOWED_NEXT.has(next as PortalPath)) {
         return res.status(400).json({ ok: false, error: "invalid_next" });
       }
 

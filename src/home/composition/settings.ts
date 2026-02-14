@@ -1,15 +1,12 @@
-import { getPortalLinksForPaths } from "../../features/portal/links.js";
+import { getPortalLinksForPaths } from "../../features/portal-links/links.js";
 import { buildSettingsBlocks } from "../views/settings.js";
 import type { HomeSectionSpec } from "../types.js";
 
 export const settingsSection: HomeSectionSpec<"settings"> = {
-  load: async ({ userId, teamContext, preferences, profile, teamName }) => {
+  load: async ({ userId, teamContext, preferences }) => {
     const portalLinks = await getPortalLinksForPaths({
       teamId: teamContext.teamId,
       userId,
-      userName: profile.name,
-      userAvatar: profile.avatar,
-      teamName,
       paths: ["payments"],
     });
 

@@ -1,0 +1,33 @@
+{
+  "name": "@newmanjulien/overbase-contracts",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
+  },
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "convex/_generated",
+    "convex/portal",
+    "convex/relay",
+    "convex/slack",
+    "convex/crons.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run build:copy && npm run build:types",
+    "build:copy": "rm -rf convex/_generated convex/portal convex/relay convex/slack convex/crons.ts dist && mkdir -p convex && cp -R ../../convex/_generated convex/_generated && cp -R ../../convex/portal convex/portal && cp -R ../../convex/relay convex/relay && cp -R ../../convex/slack convex/slack && cp ../../convex/crons.ts convex/crons.ts",
+    "build:types": "node ../../node_modules/typescript/bin/tsc --project tsconfig.build.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

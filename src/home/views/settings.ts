@@ -44,6 +44,25 @@ export const buildSettingsBlocks = (
   recommendations: HomeSectionDataMap["settings"]["recommendations"],
   portalLinks: HomeSectionDataMap["settings"]["portalLinks"],
 ): KnownBlock[] => {
+  const paymentsBlock: KnownBlock = portalLinks.paymentsUrl
+    ? {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Manage payments" },
+            action_id: "manage_payments",
+            url: portalLinks.paymentsUrl,
+          },
+        ],
+      }
+    : {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "_Portal link unavailable. Please try again later._",
+        },
+      };
   return [
     {
       type: "header",
@@ -56,17 +75,7 @@ export const buildSettingsBlocks = (
         text: "You're currently on the on the pay per question plan",
       },
     },
-    {
-      type: "actions",
-      elements: [
-        {
-          type: "button",
-          text: { type: "plain_text", text: "Manage payments" },
-          action_id: "manage_payments",
-          url: portalLinks.paymentsUrl || "https://example.com/payments",
-        },
-      ],
-    },
+    paymentsBlock,
     {
       type: "header",
       text: { type: "plain_text", text: "Recommendations" },

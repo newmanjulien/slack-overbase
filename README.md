@@ -19,6 +19,7 @@ There's a portal for users. It's a seperate Next.js app that uses the same Conve
 - Portal links are routed through `/portal-link` so every click gets a fresh code.
 - `APP_BASE_URL` is the public URL of this Slack app (ngrok in dev, Render in prod).
 - `PORTAL_LINK_SECRET` signs portal-link requests and must be set in every environment.
+- `packages/contracts` publishes `@newmanjulien/overbase-contracts` for the portal and responder apps.
 
 ## Data layer conventions
 

@@ -1,31 +1,27 @@
 import { getConfig } from "../../lib/config.js";
 import { logger } from "../../lib/logger.js";
+import { PORTAL_PATHS, type PortalPathKey } from "@newmanjulien/overbase-contracts";
 import crypto from "crypto";
 
-const DEFAULT_PORTAL_BASE_URL = "https://admin.overbase.app";
-const PORTAL_PATHS = {
-  connectors: "/connectors",
-  people: "/people",
-  payments: "/payments",
-};
-const PORTAL_URL_KEYS = {
+const PORTAL_URL_KEYS: Record<PortalPathKey, keyof PortalLinks> = {
   connectors: "connectorsUrl",
   people: "peopleUrl",
   payments: "paymentsUrl",
-} as const;
-type PortalPathKey = keyof typeof PORTAL_PATHS;
+};
 type PortalLinks = {
   connectorsUrl?: string;
   peopleUrl?: string;
   paymentsUrl?: string;
 };
 
-const normalizeBaseUrl = (rawBaseUrl?: string) => {
-  const baseUrl = rawBaseUrl || DEFAULT_PORTAL_BASE_URL;
-  if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
-    return baseUrl.replace(/\/$/, "");
+const normalizeAppBaseUrl = (rawBaseUrl?: string) => {
+  if (!rawBaseUrl) {
+    throw new Error("Missing APP_BASE_URL");
   }
-  return `https://${baseUrl.replace(/^\/+/, "").replace(/\/$/, "")}`;
+  if (rawBaseUrl.startsWith("http://") || rawBaseUrl.startsWith("https://")) {
+    return rawBaseUrl.replace(/\/$/, "");
+  }
+  return `https://${rawBaseUrl.replace(/^\/+/, "").replace(/\/$/, "")}`;
 };
 
 const buildSignature = (secret: string, payload: string) =>
@@ -39,27 +35,14 @@ const buildPortalLinkUrl = (
   return `${appBaseUrl}/portal-link?${params.toString()}`;
 };
 
-export const getPortalLinks = async (payload: {
-  teamId: string;
-  userId: string;
-  userName?: string;
-  userAvatar?: string;
-  teamName?: string;
-}): Promise<PortalLinks> => {
-  return getPortalLinksForPaths({ ...payload, paths: ["connectors", "people", "payments"] });
-};
-
 export const getPortalLinksForPaths = async (payload: {
   teamId: string;
   userId: string;
-  userName?: string;
-  userAvatar?: string;
-  teamName?: string;
   paths: PortalPathKey[];
 }): Promise<PortalLinks> => {
   try {
     const config = getConfig();
-    const appBaseUrl = normalizeBaseUrl(config.APP_BASE_URL);
+    const appBaseUrl = normalizeAppBaseUrl(config.APP_BASE_URL);
     const results = await Promise.all(
       payload.paths.map(async (path) => {
         const payloadString = `${payload.teamId}:${payload.userId}:${PORTAL_PATHS[path]}`;
@@ -82,10 +65,7 @@ export const getPortalLinksForPaths = async (payload: {
       },
       "Failed to build portal links",
     );
-    const fallbackEntries = payload.paths.map((path) => [
-      PORTAL_URL_KEYS[path],
-      `${DEFAULT_PORTAL_BASE_URL}${PORTAL_PATHS[path]}`,
-    ]);
+    const fallbackEntries = payload.paths.map((path) => [PORTAL_URL_KEYS[path], undefined]);
     return Object.fromEntries(fallbackEntries) as PortalLinks;
   }
 };
