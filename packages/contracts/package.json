@@ -1,6 +1,6 @@
 {
   "name": "@newmanjulien/overbase-contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "type": "module",
   "publishConfig": {
@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "build": "npm run build:copy && npm run build:types",
-    "build:copy": "rm -rf convex/_generated convex/portal convex/relay convex/slack convex/crons.ts dist && mkdir -p convex && cp -R ../../convex/_generated convex/_generated && cp -R ../../convex/portal convex/portal && cp -R ../../convex/relay convex/relay && cp -R ../../convex/slack convex/slack && cp ../../convex/crons.ts convex/crons.ts",
+    "build:copy": "rm -rf convex/_generated convex/portal convex/relay convex/slack convex/crons.ts dist && mkdir -p convex dist/convex && cp -R ../../convex/_generated convex/_generated && cp -R ../../convex/portal convex/portal && cp -R ../../convex/relay convex/relay && cp -R ../../convex/slack convex/slack && cp ../../convex/crons.ts convex/crons.ts && cp -R ../../convex/_generated dist/convex/_generated && cp -R ../../convex/portal dist/convex/portal && cp -R ../../convex/relay dist/convex/relay && cp -R ../../convex/slack dist/convex/slack && cp ../../convex/crons.ts dist/convex/crons.ts",
     "build:types": "node ../../node_modules/typescript/bin/tsc --project tsconfig.build.json"
   },
   "devDependencies": {
